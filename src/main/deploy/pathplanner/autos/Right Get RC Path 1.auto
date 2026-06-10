@@ -1,0 +1,49 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Position Put 1 Coral"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Position Get RC Path 1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Position Put RC Path 1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Position Get R2C Path 2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Position Put RC Path 1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Position Get R2C Path 2"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Right Position",
+  "choreoAuto": false
+}
