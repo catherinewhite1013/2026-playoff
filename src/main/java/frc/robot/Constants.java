@@ -57,6 +57,10 @@ public final class Constants {
     public static final int kBackLeftTurnPort = 6;// 5
     public static final int kBackRightTurnPort = 5;// 6
 
+    // Intake
+    public static final int kRollerPort = 0;
+    public static final int kAnglePort = 0;
+
   }
 
   // SwerveModule
@@ -148,4 +152,57 @@ public final class Constants {
     public static final String kLimelightName = "Front";
     
   }
+
+  public static final class IntakeConstants {
+
+    public static final double kAngleFowardPosLimit = 0.0;
+    public static final double kAngleReversePosLimit = 0.0;
+
+    public static final double kP = 0;
+    public static final double kI = 0;
+    public static final double kD = 0;
+    
+    public static final double kAngleMaxOutput = 0.5;
+    public static final double kAngleMinOutput = -0.5;
+
+    public static final double kRollerStartMinAngle = 0.0;
+
+    public enum AngleManual{
+      kOut(0.5),
+      kIn(0.5),
+      kStop(0.0);
+
+      public final double rate;
+
+      private AngleManual(double rate){
+        this.rate = rate;
+      }
+    }
+
+    public enum AngleState{
+      kExtend(0),
+      kClose(0);
+
+      public final double position;
+
+      private AngleState(double position){
+        this.position = position;
+      }
+    }
+
+    public enum RollerAction{
+      kGetBall(0.6),
+      kStop(0.0),
+      kSplitBall(-0.6);
+
+      public final double state;
+
+      private RollerAction(double state){
+        this.state = state;
+      }
+    }
+  }
+
+
+
 }
