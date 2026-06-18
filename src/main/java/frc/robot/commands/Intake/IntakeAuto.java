@@ -5,7 +5,7 @@ import static frc.robot.Constants.IntakeConstants.kRollerStartMinAngle;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Constants.IntakeConstants.AngleState;
 import frc.robot.Constants.IntakeConstants.RollerAction;
-import frc.robot.subsystems.Intake.IntakeSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeAuto extends InstantCommand{
     private IntakeSubsystem intakeSubsystem;
@@ -26,12 +26,14 @@ public class IntakeAuto extends InstantCommand{
                 } else{
                     intakeSubsystem.setRollerState(RollerAction.kStop);
                 }
-                
                 break;
-        
-            default:
+            
+            case kClose:
                 intakeSubsystem.setAngleAuto(AngleState.kClose);
                 intakeSubsystem.setRollerState(RollerAction.kStop);
+                break;
+                
+            default:
                 break;
         }
     }

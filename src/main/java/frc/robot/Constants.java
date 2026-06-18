@@ -61,6 +61,13 @@ public final class Constants {
     public static final int kRollerPort = 0;
     public static final int kAnglePort = 0;
 
+    // Storage
+    public static final int kStoragePort = 0;
+    public static final int kShooterFeedPort = 0;
+
+    // Shooter
+    public static final int kShooterMainPort = 0;
+    public static final int kShooterSecondaryPort = 0;
   }
 
   // SwerveModule
@@ -201,6 +208,66 @@ public final class Constants {
         this.state = state;
       }
     }
+  }
+
+  public static final class StorageConstant {
+    
+    public enum StorageAction{
+      kIn(0.8),
+      kStop(0.0),
+      kOut(0.8);
+
+      public final double state;
+
+      private StorageAction(double state){
+        this.state = state;
+      }
+    }
+
+    public enum ShooterFeedAction{
+      kIn(0.8),
+      kStop(0.0),
+      kOut(0.8);
+
+      public final double state;
+
+      private ShooterFeedAction(double state){
+        this.state = state;
+      }
+    }
+  }
+
+  public static final class ShooterConstant {
+    
+    public static final double kMainFlywheelBeltRatio = 0.0;
+    public static final double kMainFlywheelkV = 0.0;
+    public static final double kMainFlywheelkS = 0.0;
+    public static final double kMainFlywheelkP = 0.0;
+
+    public static final double kSecondaryFlywheelKP = 0.0;
+    public static final double kSecondaryFlywheelKI = 0.0;
+    public static final double kSecondaryFlywheelKD = 0.0;
+    public static final double kSecondaryFlywheelKV = 0.0;
+    public static final double kSecondaryFlywheelKS = 0.0;
+
+    public static final Translation2d kRobotToShooter = new Translation2d(0.0, 0.0);
+
+    public static final double[][] kShooterDataMap = {
+      {1.0, 0.0, 0.0},
+      {2.0, 0.0, 0.0},
+    };
+
+    public static final double kMainFlywheelErrTolerence = 100;
+    public static final double kSecondaryFlywheelErrTolerence = 50;
+
+    public static final Translation2d kBlueHubLocation = new Translation2d(
+        Units.inchesToMeters(181.56),
+        Units.inchesToMeters(158.32)); // Welded:Units.inchesToMeters(182.11), Units.inchesToMeters(158.84)
+    public static final Translation2d kRedHubLocation = new Translation2d(
+        Units.inchesToMeters(468.56),
+        Units.inchesToMeters(158.32)); // Welded:Units.inchesToMeters(469.11), Units.inchesToMeters(158.84)
+
+    
   }
 
 
