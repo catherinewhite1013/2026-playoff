@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.Swerve;
 
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -15,6 +16,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -29,43 +31,44 @@ import frc.robot.Constants.IDConstants;
 import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers;
 
+
 public class SwerveSubsytem extends SubsystemBase {
   // Create 4 swerve modules with attributes from constants
-  private final SwerveModule frontLeft = new SwerveModule(
+  private final SwerveModule frontLeft = new SwerveModuleMK4i(
       IDConstants.kFrontLeftDrivePort,
       IDConstants.kFrontLeftTurnPort,
-      DriveConstants.kFrontLeftDriveAbsoluteEncoderPort,
+      IDConstants.kFrontLeftDriveAbsoluteEncoderPort,
       DriveConstants.kFrontLeftDriveMotorReversed,
       DriveConstants.kFrontLeftTurningMotorReversed,
       "Front Left");
 
-  private final SwerveModule frontRight = new SwerveModule(
+  private final SwerveModule frontRight = new SwerveModuleMK4i(
       IDConstants.kFrontRightDrivePort,
       IDConstants.kFrontRightTurnPort,
-      DriveConstants.kFrontRightDriveAbsoluteEncoderPort,
+      IDConstants.kFrontRightDriveAbsoluteEncoderPort,
       DriveConstants.kFrontRightDriveMotorReversed,
       DriveConstants.kFrontRightTurningMotorReversed,
       "Front Right");
 
-  private final SwerveModule backLeft = new SwerveModule(
+  private final SwerveModule backLeft = new SwerveModuleMK4i(
       IDConstants.kBackLeftDrivePort,
       IDConstants.kBackLeftTurnPort,
-      DriveConstants.kBackLeftDriveAbsoluteEncoderPort,
+      IDConstants.kBackLeftDriveAbsoluteEncoderPort,
       DriveConstants.kBackLeftDriveMotorReversed,
       DriveConstants.kBackLeftTurningMotorReversed,
       "Back Left");
 
-  private final SwerveModule backRight = new SwerveModule(
+  private final SwerveModule backRight = new SwerveModuleMK4i(
       IDConstants.kBackRightDrivePort,
       IDConstants.kBackRightTurnPort,
-      DriveConstants.kBackRightDriveAbsoluteEncoderPort,
+      IDConstants.kBackRightDriveAbsoluteEncoderPort,
       DriveConstants.kBackRightDriveMotorReversed,
       DriveConstants.kBackRightTurningMotorReversed,
       "Back Right");
 
-  private final static AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
+  private final static AHRS gyro = new AHRS(NavXComType.kUSB1);
 
-  private Field2d field = new Field2d();
+  public Field2d field = new Field2d();
 
   private RobotConfig config;
 
@@ -75,27 +78,15 @@ public class SwerveSubsytem extends SubsystemBase {
   public double kP = DriveConstants.kPTheta, kI = DriveConstants.kITheta, kD = DriveConstants.kDTheta,
       kIZone = DriveConstants.kIZTheta;
 
-  private boolean isRED = false;
 
+  // Create odometer for swerve drive
   private final SwerveDrivePoseEstimator poseEstimator;
 
-
-  // Returns positions of the swerve modules for odometry
-  public SwerveModulePosition[] getModulePositions() {
-
-    return (new SwerveModulePosition[] {
-        frontLeft.getPosition(),
-        frontRight.getPosition(),
-        backLeft.getPosition(),
-        backRight.getPosition() });
-
-  }
-
-
+  private Pose2d estPose2d = new Pose2d();
 
   /* Creates a new SwerveSubsytem. */
   public SwerveSubsytem() {
-
+    
     resetAllEncoders();
 
     // Zero navX heading on new thread when robot starts
@@ -109,22 +100,21 @@ public class SwerveSubsytem extends SubsystemBase {
     }).start();
 
     poseEstimator = new SwerveDrivePoseEstimator(
-      DriveConstants.kDriveKinematics,
-      getOdometryAngle(),
-      getModulePositions(),
-      new Pose2d(),
-      VecBuilder.fill(0.1,0.1,0.1),
-      VecBuilder.fill(0.9, 0.9, 0.9)
-      );
+        DriveConstants.kDriveKinematics,
+        getRobotRotation(),
+        getModulePositions(),
+        new Pose2d(),
+        VecBuilder.fill(0.1, 0.1, 0.1),  // 狀態標準差 (X, Y, Theta)
+        VecBuilder.fill(0.9, 0.9, 0.9)   // 視覺標準差 (X, Y, Theta)，數值越小越信任視覺
+    );
 
     // Set default PID values for thetaPID
     thetaController = new PIDController(
-    DriveConstants.kPTheta,
-    DriveConstants.kITheta,
-    DriveConstants.kDTheta);
+        DriveConstants.kPTheta,
+        DriveConstants.kITheta,
+        DriveConstants.kDTheta);
     thetaController.setIZone(DriveConstants.kIZTheta);
     thetaController.enableContinuousInput(0, 360);
-
 
     // Load the RobotConfig from the GUI settings. You should probably
     // store this in your Constants file
@@ -153,7 +143,6 @@ public class SwerveSubsytem extends SubsystemBase {
 
           var alliance = DriverStation.getAlliance();
           if (alliance.isPresent()) {
-            isRED = alliance.get() == DriverStation.Alliance.Red;
             return alliance.get() == DriverStation.Alliance.Red;
           }
           return false;
@@ -165,21 +154,42 @@ public class SwerveSubsytem extends SubsystemBase {
     PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
 
     SmartDashboard.putData("Field", field);
+
+  }
+
+  // Returns positions of the swerve modules for odometry
+  public SwerveModulePosition[] getModulePositions() {
+
+    return (new SwerveModulePosition[] {
+        frontLeft.getPosition(),
+        frontRight.getPosition(),
+        backLeft.getPosition(),
+        backRight.getPosition() });
+
   }
 
   // Reset gyro heading
   public void zeroHeading() {
+    System.out.println("zeroHeading()");
+
     gyro.reset();
-    heading = getHeading();
+
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+      resetOdometry(new Pose2d(Translation2d.kZero, Rotation2d.kPi));
+      poseEstimator.resetRotation(Rotation2d.kPi);
+    } else {
+      resetOdometry(new Pose2d(Translation2d.kZero, Rotation2d.kZero));
+      poseEstimator.resetRotation(Rotation2d.kZero);
+    }
+
+    // for Testing
+    // resetOdometry(new Pose2d(1.2, 0.36, Rotation2d.kZero));
   }
 
-  // Return gyro heading, make sure to read navx docs on this
-  public static double getHeading() {
-    return gyro.getAngle();
-  }
-
-  public double getNormalizedAngle(double angle) {
-    return (angle % 360 + 360) % 360; // 0~360
+  // Returns an angle from 0 to 360 that is continuous, meaning it loops
+  public double getRobotAngle() {
+    return (-gyro.getAngle() % 360 + 360) % 360;
   }
 
   // Stop all module movement
@@ -225,10 +235,11 @@ public class SwerveSubsytem extends SubsystemBase {
     ySpeed *= DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
 
     double turningSpeed = turningAngle;
-    if (angleFieldRelative) {
-      // heading = getHeading() - turningAngle;
-      turningSpeed = -thetaController.calculate(getNormalizedAngle(getHeading()), turningAngle);
-    }
+    // if (angleFieldRelative) {
+    // // heading = getHeading() - turningAngle;
+    // turningSpeed = -thetaController.calculate(getNormalizedAngle(getHeading()),
+    // turningAngle);
+    // }
 
     // System.out.println(getHeading() +" "+heading);
 
@@ -248,13 +259,17 @@ public class SwerveSubsytem extends SubsystemBase {
     if (robotRelative) {
       chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
     } else {
-      if(isRED){
-        chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, turningSpeed,
-        poseEstimator.getEstimatedPosition().getRotation().plus(Rotation2d.k180deg));
-      }else{
-        chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, turningSpeed,
-        poseEstimator.getEstimatedPosition().getRotation());
+
+      var alliance = DriverStation.getAlliance();
+      if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+        xSpeed = -xSpeed;
+        ySpeed = -ySpeed;
       }
+
+      chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+          xSpeed, ySpeed, turningSpeed,
+          estPose2d.getRotation());
+      // odometer.getPoseMeters().getRotation());
     }
 
     // Set chassis speeds
@@ -276,17 +291,18 @@ public class SwerveSubsytem extends SubsystemBase {
 
   // Return robot position caculated by odometer
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
+    // return odometer.getPoseMeters();
+    return estPose2d;
   }
 
   // Reset odometer to new Pose2d location
   public void resetOdometry(Pose2d pose) {
-    poseEstimator.resetPosition(getOdometryAngle(), getModulePositions(), pose);
+    poseEstimator.resetPosition(getRobotRotation(), getModulePositions(), pose);
   }
 
   // Return an angle from -180 to 180 for robot odometry
   // The commented out method is for if the gyroscope is reversed direction
-  public Rotation2d getOdometryAngle() {
+  public Rotation2d getRobotRotation() {
     /*
      * double angle = -gyro.getYaw() + 180;
      * if(angle > 180){
@@ -299,17 +315,7 @@ public class SwerveSubsytem extends SubsystemBase {
     // SmartDashboard.putNumber("Yaw", gyro.getYaw());
     // SmartDashboard.putNumber("Angle", gyro.getAngle());
     // return (Rotation2d.fromDegrees(gyro.getYaw()));
-    return Rotation2d.fromDegrees(getRobotDegrees() - 180);
-  }
-
-  // Returns an angle from 0 to 360 that is continuous, meaning it loops
-  public double getRobotDegrees() {
-    double rawValue = -gyro.getAngle() % 360.0;
-    if (rawValue < 0.0) {
-      return (rawValue + 360.0);
-    } else {
-      return (rawValue);
-    }
+    return Rotation2d.fromDegrees(getRobotAngle());
   }
 
   // Reset all swerve encoders
@@ -320,16 +326,16 @@ public class SwerveSubsytem extends SubsystemBase {
     backRight.resetEncoders();
   }
 
-  public static void copyHeading() {
-    heading = getHeading();
-    
+  public AHRS getGyro() {
+    return gyro;
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
 
-    poseEstimator.update(getOdometryAngle(), getModulePositions());
+    poseEstimator.update(getRobotRotation(), getModulePositions());
+
 
     LimelightHelpers.SetRobotOrientation(LimelightConstants.kLimelightName, 
     poseEstimator.getEstimatedPosition().getRotation().getDegrees(),
@@ -351,12 +357,14 @@ public class SwerveSubsytem extends SubsystemBase {
         mt2.pose,
         mt2.timestampSeconds);
       }
-      
     }
 
+    field.getObject("Odometry").setPose(poseEstimator.getEstimatedPosition());
+
+    
 
     // SwerveModulePosition[] positions = getModulePositions();
-    // Rotation2d angle = getOdometryAngle();
+    // Rotation2d angle = getRobotRotation();
 
     // if (positions == null || angle == null) {
     // System.out.println("Error: Null values in odometry update!");
@@ -366,21 +374,30 @@ public class SwerveSubsytem extends SubsystemBase {
     // // update odometry
     // odometer.update(angle, positions);
 
-    // // Debug
-    // SmartDashboard.putNumber("Odometry X", odometer.getPoseMeters().getX());
-    // SmartDashboard.putNumber("Odometry Y", odometer.getPoseMeters().getY());
-    // SmartDashboard.putNumber("Odometry Angle",
-    // odometer.getPoseMeters().getRotation().getDegrees());
+    // Debug
+    SmartDashboard.putNumber("Odometry X", poseEstimator.getEstimatedPosition().getX());
+    SmartDashboard.putNumber("Odometry Y", poseEstimator.getEstimatedPosition().getY());
+    SmartDashboard.putNumber("Odometry Angle", poseEstimator.getEstimatedPosition().getRotation().getDegrees());
 
     // field.setRobotPose(getPose());
-
-    // Put odometry data on smartdashboard
-    SmartDashboard.putNumber("Heading", getHeading());
 
     // frontLeft.update();
     // frontRight.update();
     // backLeft.update();
     // backRight.update();
 
+    frontLeft.printInfo();
+    frontRight.printInfo();
+    backLeft.printInfo();
+    backRight.printInfo();
+
+    SmartDashboard.putNumber("Heading", getRobotAngle());
   }
+
+  public ChassisSpeeds getFieldRelativeSpeeds() {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(
+        getSpeeds(),
+        getRobotRotation());
+  }
+
 }

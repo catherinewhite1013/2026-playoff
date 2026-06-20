@@ -7,9 +7,13 @@ package frc.robot;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 // import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -46,16 +50,22 @@ public final class Constants {
   // ID
   public static class IDConstants {
     // Swerve Drive Motor Port
-    public static final int kFrontLeftDrivePort = 4;
-    public static final int kFrontRightDrivePort = 3;
-    public static final int kBackLeftDrivePort = 2;// 1
-    public static final int kBackRightDrivePort = 1;// 2
+    public static final int kFrontLeftDrivePort = 1;
+    public static final int kFrontRightDrivePort = 2;
+    public static final int kBackLeftDrivePort = 3;// 1
+    public static final int kBackRightDrivePort = 4;// 2
 
     // Swerve Turning Motor Port
-    public static final int kFrontLeftTurnPort = 8;
-    public static final int kFrontRightTurnPort = 7;
-    public static final int kBackLeftTurnPort = 6;// 5
-    public static final int kBackRightTurnPort = 5;// 6
+    public static final int kFrontLeftTurnPort = 5;
+    public static final int kFrontRightTurnPort = 6;
+    public static final int kBackLeftTurnPort = 7;// 5
+    public static final int kBackRightTurnPort = 8;// 6
+
+    // Swerve Absolute Encoder Port
+    public static final int kFrontLeftDriveAbsoluteEncoderPort = 1;
+    public static final int kFrontRightDriveAbsoluteEncoderPort = 2;
+    public static final int kBackLeftDriveAbsoluteEncoderPort = 3;
+    public static final int kBackRightDriveAbsoluteEncoderPort = 4;
 
     // Intake
     public static final int kRollerPort = 0;
@@ -72,31 +82,32 @@ public final class Constants {
 
   // SwerveModule
   public static class ModuleConstants {
-    public static final double kWheelDiameterMeters = Units.inchesToMeters(4);
-    public static final double kDriveMotorGearRatio = 1.0 / 6.122; // MK3:1.0 / 8.16;
-    public static final double kTurningMotorGearRatio = 1 / (150 / 7.0);// MK3: 1 / 8.16
-    public static final double kDriveEncoderRot2Meter = kDriveMotorGearRatio * Math.PI * kWheelDiameterMeters;
-    public static final double kTurningEncoderRot2Rad = kTurningMotorGearRatio * 2 * Math.PI;
-    public static final double kDriveEncoderRPM2MeterPerSec = kDriveEncoderRot2Meter / 60;
-    public static final double kTurningEncoderRPM2RadPerSec = kTurningEncoderRot2Rad / 60;
+    public static class MK4i {
+      public static final double kWheelDiameterMeters = Units.inchesToMeters(4);
+      public static final double kDriveMotorGearRatio = 1.0 / 6.122; // MK3:1.0 / 8.16;
+      public static final double kTurningMotorGearRatio = 1 / (150 / 7.0);// MK3: 1 / 8.16
+      public static final double kDriveEncoderRot2Meter = kDriveMotorGearRatio * Math.PI * kWheelDiameterMeters;
+      public static final double kTurningEncoderRot2Rad = kTurningMotorGearRatio * 2 * Math.PI;
+      public static final double kDriveEncoderRPM2MeterPerSec = kDriveEncoderRot2Meter / 60;
+      public static final double kTurningEncoderRPM2RadPerSec = kTurningEncoderRot2Rad / 60;
 
-    // Used in working code currently
-    public static final double kPTurning = 0.5;
+      // Used in working code currently
+      public static final double kPTurning = 0.5;
 
-    // These two used for simulation currently
-    public static final double kITurning = 0.0;
-    public static final double kDTurning = 0.005;
-
+      // These two used for simulation currently
+      public static final double kITurning = 0.0;
+      public static final double kDTurning = 0.005;
+    }
   }
 
   // SwerveDrive
   public static class DriveConstants {
 
     // Distance between right and left wheels
-    public static final double kTrackWidth = 0.585;
+    public static final double kTrackWidth = 0.66 - 0.12;
 
     // Distance between front and back wheels
-    public static final double kWheelBase = kTrackWidth;
+    public static final double kWheelBase = 0.72 - 0.12;
 
     // Need to update to correct values, I dont remember the value we set last meet
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
@@ -105,34 +116,28 @@ public final class Constants {
         new Translation2d(-kWheelBase / 2, kTrackWidth / 2), // BL
         new Translation2d(-kWheelBase / 2, -kTrackWidth / 2)); // BR
 
-    public static final boolean kFrontLeftDriveMotorReversed = true;
-    public static final boolean kFrontRightDriveMotorReversed = true;
-    public static final boolean kBackLeftDriveMotorReversed = true;
-    public static final boolean kBackRightDriveMotorReversed = true;
+    public static final boolean kFrontLeftDriveMotorReversed = false;
+    public static final boolean kFrontRightDriveMotorReversed = false;
+    public static final boolean kBackLeftDriveMotorReversed = false;
+    public static final boolean kBackRightDriveMotorReversed = false;
 
     public static final boolean kFrontLeftTurningMotorReversed = true;
     public static final boolean kFrontRightTurningMotorReversed = true;
     public static final boolean kBackLeftTurningMotorReversed = true;
     public static final boolean kBackRightTurningMotorReversed = true;
 
-    // -------> ABE <-------- //
-    public static final int kFrontLeftDriveAbsoluteEncoderPort = 4;
-    public static final int kFrontRightDriveAbsoluteEncoderPort = 3;
-    public static final int kBackLeftDriveAbsoluteEncoderPort = 2;// 1
-    public static final int kBackRightDriveAbsoluteEncoderPort = 1;// 2
-
-    public static final double kPhysicalMaxSpeedMetersPerSecond = 4.5;// 5.5
+    public static final double kPhysicalMaxSpeedMetersPerSecond = 5.0;
     public static final double kPhysicalMaxAngularSpeedRadiansPerSecond = 2 * Math.PI;
 
     public static final double kTeleDriveMaxSpeedMetersPerSecond = kPhysicalMaxSpeedMetersPerSecond;
     public static final double kTeleDriveMaxAngularSpeedRadiansPerSecond = kPhysicalMaxAngularSpeedRadiansPerSecond;
-    public static final double kTeleDriveMaxAccelerationUnitsPerSecond = 2;
-    public static final double kTeleDriveMaxAngularAccelerationUnitsPerSecond = 2;// 2
+    public static final double kTeleDriveMaxAccelerationUnitsPerSecond = 5;
+    public static final double kTeleDriveMaxAngularAccelerationUnitsPerSecond = 2;
 
-    public static final double kPTheta = 0.04;// 0.012
-    public static final double kITheta = 0.0;// 0.01
-    public static final double kDTheta = 0.0;// 0.00015
-    public static final double kIZTheta = 60.0;// 60.0
+    public static final double kPTheta = 0.04;
+    public static final double kITheta = 0.0;
+    public static final double kDTheta = 0.0;
+    public static final double kIZTheta = 60.0;
 
     public static final double kMaxDriveMotorTemp = 33.0;
 
@@ -142,6 +147,8 @@ public final class Constants {
     public static final double kILockHeading = 0.025;
     public static final double kDLockHeading = 0.001;
 
+    public static final Matrix<N3, N1> kStateStdDevs = VecBuilder.fill(0.1, 0.1, Math.toRadians(2));
+    public static final Matrix<N3, N1> kVisionStdDevs = VecBuilder.fill(1.2, 1.2, Math.toRadians(45));
   }
 
   // Auto
