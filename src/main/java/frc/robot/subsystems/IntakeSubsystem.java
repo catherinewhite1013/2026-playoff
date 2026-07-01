@@ -17,19 +17,24 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IDConstants;
-import frc.robot.Constants.IntakeConstants.AngleState;
+import frc.robot.Constants.IntakeConstants.ExtendManual;
+import frc.robot.Constants.IntakeConstants.ExtendState;
+import frc.robot.Constants.IntakeConstants.RollerAction;
+import frc.robot.subsystems.Health.CheckableSpark;
+import frc.robot.subsystems.Health.HardwareHealth;
+
 import static frc.robot.Constants.IntakeConstants.*;
 
 public class IntakeSubsystem extends SubsystemBase{
     private final SparkFlex rollerMotor = new SparkFlex(IDConstants.kRollerPort, MotorType.kBrushless);
-    private final SparkMax angleMotor = new SparkMax(IDConstants.kAnglePort, MotorType.kBrushless);
+    private final SparkMax extendMotor = new SparkMax(IDConstants.kExtendPort, MotorType.kBrushless);
 
     private final SparkFlexConfig rollerConfig = new SparkFlexConfig();
-    private final SparkMaxConfig angleConfig = new SparkMaxConfig();
+    private final SparkMaxConfig extendConfig = new SparkMaxConfig();
 
-    private final RelativeEncoder angleEncoder = angleMotor.getEncoder();
-    private final SparkAbsoluteEncoder angleAbsoluteEncoder = angleMotor.getAbsoluteEncoder();
-    private final SparkClosedLoopController anglePIDcontroller = angleMotor.getClosedLoopController();
+    private final RelativeEncoder extendEncoder = extendMotor.getEncoder();
+    private final SparkAbsoluteEncoder extendAbsoluteEncoder = extendMotor.getAbsoluteEncoder();
+    private final SparkClosedLoopController extendPIDcontroller = extendMotor.getClosedLoopController();
 
     public IntakeSubsystem() {
         
@@ -38,54 +43,57 @@ public class IntakeSubsystem extends SubsystemBase{
             .idleMode(IdleMode.kCoast)
             .smartCurrentLimit(70);
 
-        angleConfig
+        extendConfig
             .inverted(false)
             .idleMode(IdleMode.kCoast)
             .smartCurrentLimit(60)
             .softLimit
             .forwardSoftLimitEnabled(true)
             .reverseSoftLimitEnabled(true)
-            .forwardSoftLimit(kAngleFowardPosLimit)
-            .reverseSoftLimit(kAngleReversePosLimit);
-        angleConfig.closedLoop
+            .forwardSoftLimit(kExtendFowardPosLimit)
+            .reverseSoftLimit(kExtendReversePosLimit);
+        extendConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
         .pid(kP, kI, kD)
-        .outputRange(kAngleMinOutput, kAngleMaxOutput);
+        .outputRange(kExtendMinOutput, kExtendMaxOutput);
 
         rollerMotor.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        angleEncoder.setPosition(angleAbsoluteEncoder.getPosition());
+        extendMotor.configure(extendConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        extendEncoder.setPosition(extendAbsoluteEncoder.getPosition());
+
+        HardwareHealth.getInstance().register(new CheckableSpark(rollerMotor, "Intake/Roller Motor"));
+        HardwareHealth.getInstance().register(new CheckableSpark(extendMotor, "Intake/Extend Motor"));
        
     }
 
-    public double getAnglePosition(){
-        return angleEncoder.getPosition();
+    public double getExtendPosition(){
+        return extendEncoder.getPosition();
     }
 
-    public double getAngleAbsPosition(){
-        return angleAbsoluteEncoder.getPosition();
+    public double getExtendAbsPosition(){
+        return extendAbsoluteEncoder.getPosition();
     }
 
     public void setRollerState(RollerAction action){
         rollerMotor.set(action.state);
     }
 
-    public void setAngleManual(AngleManual speed){
-        angleMotor.set(speed.rate);
+    public void setExtendManual(ExtendManual speed){
+        extendMotor.set(speed.rate);
     }
 
-    public void setAngleAuto(AngleState state){
-        anglePIDcontroller.setSetpoint(state.position, ControlType.kPosition);
+    public void setExtendAuto(ExtendState state){
+        extendPIDcontroller.setSetpoint(state.position, ControlType.kPosition);
     }
 
-    public void stopAngleMotor(){
-        angleMotor.stopMotor();
+    public void stopextendMotor(){
+        extendMotor.stopMotor();
     }
 
 
     @Override
     public void periodic(){
-        SmartDashboard.putNumber("Intake / AngleAbsPos", getAngleAbsPosition());
-        SmartDashboard.putNumber("Intake / AngleRelativePos", getAnglePosition());
+        SmartDashboard.putNumber("Intake / ExtendAbsPos", getExtendAbsPosition());
+        SmartDashboard.putNumber("Intake / ExtendRelativePos", getExtendPosition());
     }
 }

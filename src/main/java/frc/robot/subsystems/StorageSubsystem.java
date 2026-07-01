@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IDConstants;
 import frc.robot.Constants.StorageConstant.ShooterFeedAction;
 import frc.robot.Constants.StorageConstant.StorageAction;
+import frc.robot.subsystems.Health.CheckableSpark;
+import frc.robot.subsystems.Health.HardwareHealth;
 
 public class StorageSubsystem extends SubsystemBase{
     private final SparkMax storageMotor = new SparkMax(IDConstants.kStoragePort, MotorType.kBrushless);
@@ -27,6 +29,9 @@ public class StorageSubsystem extends SubsystemBase{
         .inverted(false)
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(80);
+
+        HardwareHealth.getInstance().register(new CheckableSpark(shooterFeedMotor, "Storage/shooter feed"));
+        HardwareHealth.getInstance().register(new CheckableSpark(storageMotor, "Storage/conveyor"));
     }
 
     public void setStorageAction(StorageAction storageAction, ShooterFeedAction shooterFeedAction){

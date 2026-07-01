@@ -69,7 +69,7 @@ public final class Constants {
 
     // Intake
     public static final int kRollerPort = 0;
-    public static final int kAnglePort = 0;
+    public static final int kExtendPort = 0;
 
     // Storage
     public static final int kStoragePort = 0;
@@ -169,37 +169,37 @@ public final class Constants {
 
   public static final class IntakeConstants {
 
-    public static final double kAngleFowardPosLimit = 0.0;
-    public static final double kAngleReversePosLimit = 0.0;
+    public static final double kExtendFowardPosLimit = 0.0;
+    public static final double kExtendReversePosLimit = 0.0;
 
     public static final double kP = 0;
     public static final double kI = 0;
     public static final double kD = 0;
     
-    public static final double kAngleMaxOutput = 0.5;
-    public static final double kAngleMinOutput = -0.5;
+    public static final double kExtendMaxOutput = 0.5;
+    public static final double kExtendMinOutput = -0.5;
 
-    public static final double kRollerStartMinAngle = 0.0;
+    public static final double kRollerStartMinPos = 0.0;
 
-    public enum AngleManual{
+    public enum ExtendManual{
       kOut(0.5),
       kIn(0.5),
       kStop(0.0);
 
       public final double rate;
 
-      private AngleManual(double rate){
+      private ExtendManual(double rate){
         this.rate = rate;
       }
     }
 
-    public enum AngleState{
+    public enum ExtendState{
       kExtend(0),
       kClose(0);
 
       public final double position;
 
-      private AngleState(double position){
+      private ExtendState(double position){
         this.position = position;
       }
     }
@@ -246,7 +246,7 @@ public final class Constants {
 
   public static final class ShooterConstant {
     
-    public static final double kMainFlywheelBeltRatio = 0.0;
+    public static final double kMainFlywheelBeltRatio = 24/36; //Sensor To Mechanism Ratio
     public static final double kMainFlywheelkV = 0.0;
     public static final double kMainFlywheelkS = 0.0;
     public static final double kMainFlywheelkP = 0.0;
@@ -274,6 +274,7 @@ public final class Constants {
         Units.inchesToMeters(468.56),
         Units.inchesToMeters(158.32)); // Welded:Units.inchesToMeters(469.11), Units.inchesToMeters(158.84)
 
+    
     
   }
 

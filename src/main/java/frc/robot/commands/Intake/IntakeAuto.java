@@ -1,27 +1,27 @@
 package frc.robot.commands.Intake;
 
-import static frc.robot.Constants.IntakeConstants.kRollerStartMinAngle;
+import static frc.robot.Constants.IntakeConstants.kRollerStartMinPos;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.robot.Constants.IntakeConstants.AngleState;
+import frc.robot.Constants.IntakeConstants.ExtendState;
 import frc.robot.Constants.IntakeConstants.RollerAction;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeAuto extends InstantCommand{
     private IntakeSubsystem intakeSubsystem;
-    private AngleState angleState;
+    private ExtendState extendState;
 
-    public IntakeAuto(IntakeSubsystem intakeSubsystem, AngleState angleState){
+    public IntakeAuto(IntakeSubsystem intakeSubsystem, ExtendState extendState){
         this.intakeSubsystem = intakeSubsystem;
-        this.angleState = angleState;
+        this.extendState = extendState;
     }
 
     @Override
     public void initialize(){
-        switch (angleState) {
+        switch (extendState) {
             case kExtend:
-                intakeSubsystem.setAngleAuto(AngleState.kExtend);
-                if (intakeSubsystem.getAngleAbsPosition() >= kRollerStartMinAngle) {
+                intakeSubsystem.setExtendAuto(ExtendState.kExtend);
+                if (intakeSubsystem.getExtendAbsPosition() >= kRollerStartMinPos) {
                     intakeSubsystem.setRollerState(RollerAction.kGetBall);
                 } else{
                     intakeSubsystem.setRollerState(RollerAction.kStop);
@@ -29,7 +29,7 @@ public class IntakeAuto extends InstantCommand{
                 break;
             
             case kClose:
-                intakeSubsystem.setAngleAuto(AngleState.kClose);
+                intakeSubsystem.setExtendAuto(ExtendState.kClose);
                 intakeSubsystem.setRollerState(RollerAction.kStop);
                 break;
                 

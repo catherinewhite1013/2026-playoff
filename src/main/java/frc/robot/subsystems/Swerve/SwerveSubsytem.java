@@ -30,6 +30,8 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.IDConstants;
 import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers;
+import frc.robot.subsystems.Health.CheckableNavX;
+import frc.robot.subsystems.Health.HardwareHealth;
 
 
 public class SwerveSubsytem extends SubsystemBase {
@@ -155,6 +157,8 @@ public class SwerveSubsytem extends SubsystemBase {
 
     SmartDashboard.putData("Field", field);
 
+    HardwareHealth.getInstance().register(new CheckableNavX(gyro, "Swerve/NavX"));
+
   }
 
   // Returns positions of the swerve modules for odometry
@@ -252,7 +256,7 @@ public class SwerveSubsytem extends SubsystemBase {
     // turningSpeed = MathUtil.clamp(turningSpeed,
     // -DriveConstants.kTeleDriveMaxAngularSpeedRadiansPerSecond,
     // DriveConstants.kTeleDriveMaxAngularSpeedRadiansPerSecond);
-
+    
     // Create chassis speeds
     ChassisSpeeds chassisSpeeds;
 

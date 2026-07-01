@@ -28,6 +28,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Constants.IDConstants;
+import frc.robot.subsystems.Health.CheckableSpark;
+import frc.robot.subsystems.Health.CheckableTalonFX;
+import frc.robot.subsystems.Health.HardwareHealth;
 import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
 import static frc.robot.Constants.ShooterConstant.*;
@@ -95,6 +98,9 @@ public class ShooterSubsystem extends SubsystemBase{
                 .kS(kSecondaryFlywheelKS);
 
         setupInterpolationTable();
+
+        HardwareHealth.getInstance().register(new CheckableSpark(secondaryFlywheelMotor, "Shooter/sec Flywheel"));
+        HardwareHealth.getInstance().register(new CheckableTalonFX(mainFlywheelMotor, "Shooter/main flywheel"));
     }
 
     private void setupInterpolationTable(){
@@ -174,7 +180,17 @@ public class ShooterSubsystem extends SubsystemBase{
     }
 
     //ball passing
-    public void getTargetPassLocation(){}
+    // public Translation2d getTargetPassLocation(){
+    //     var allience = DriverStation.getAlliance();
+        
+    //     if (allience.isPresent() && allience.get() == DriverStation.Alliance.Red) {
+            
+    //         return kRedPassLocation;
+    //     } else {
+            
+    //         return kBlueHubLocation;
+    //     }
+    // }
 
     //get distance
     public Translation2d getTargetHubLocation(){

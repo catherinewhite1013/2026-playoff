@@ -1,21 +1,21 @@
 package frc.robot.commands.Intake;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.IntakeConstants.AngleManual;
+import frc.robot.Constants.IntakeConstants.ExtendManual;
 import frc.robot.subsystems.IntakeSubsystem;
 
-public class IntakeAngleManual extends Command{
+public class IntakeExtendManual extends Command{
     private IntakeSubsystem intakeSubsystem;
-    private AngleManual angleManual;
+    private ExtendManual extendManual;
 
-    public IntakeAngleManual(IntakeSubsystem intakeSubsystem, AngleManual angleManual){
+    public IntakeExtendManual(IntakeSubsystem intakeSubsystem, ExtendManual extendManual){
         this.intakeSubsystem = intakeSubsystem;
-        this.angleManual = angleManual;
+        this.extendManual = extendManual;
     }
 
   @Override
   public void initialize() {
-    intakeSubsystem.setAngleManual(angleManual);
+    intakeSubsystem.setExtendManual(extendManual);
   }
 
   @Override
@@ -24,7 +24,7 @@ public class IntakeAngleManual extends Command{
 
   @Override
   public void end(boolean interrupted) {
-    intakeSubsystem.setAngleManual(AngleManual.kStop);
+    intakeSubsystem.setExtendManual(ExtendManual.kStop);
   }
 
   @Override
