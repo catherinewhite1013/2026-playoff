@@ -33,7 +33,6 @@ public class IntakeSubsystem extends SubsystemBase{
     private final SparkMaxConfig extendConfig = new SparkMaxConfig();
 
     private final RelativeEncoder extendEncoder = extendMotor.getEncoder();
-    private final SparkAbsoluteEncoder extendAbsoluteEncoder = extendMotor.getAbsoluteEncoder();
     private final SparkClosedLoopController extendPIDcontroller = extendMotor.getClosedLoopController();
 
     public IntakeSubsystem() {
@@ -59,7 +58,7 @@ public class IntakeSubsystem extends SubsystemBase{
 
         rollerMotor.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         extendMotor.configure(extendConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        extendEncoder.setPosition(extendAbsoluteEncoder.getPosition());
+        extendEncoder.setPosition(extendEncoder.getPosition());
 
         HardwareHealth.getInstance().register(new CheckableSpark(rollerMotor, "Intake/Roller Motor"));
         HardwareHealth.getInstance().register(new CheckableSpark(extendMotor, "Intake/Extend Motor"));
@@ -68,10 +67,6 @@ public class IntakeSubsystem extends SubsystemBase{
 
     public double getExtendPosition(){
         return extendEncoder.getPosition();
-    }
-
-    public double getExtendAbsPosition(){
-        return extendAbsoluteEncoder.getPosition();
     }
 
     public void setRollerState(RollerAction action){
@@ -93,7 +88,6 @@ public class IntakeSubsystem extends SubsystemBase{
 
     @Override
     public void periodic(){
-        SmartDashboard.putNumber("Intake / ExtendAbsPos", getExtendAbsPosition());
         SmartDashboard.putNumber("Intake / ExtendRelativePos", getExtendPosition());
     }
 }

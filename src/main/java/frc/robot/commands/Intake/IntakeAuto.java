@@ -21,7 +21,7 @@ public class IntakeAuto extends InstantCommand{
         switch (extendState) {
             case kExtend:
                 intakeSubsystem.setExtendAuto(ExtendState.kExtend);
-                if (intakeSubsystem.getExtendAbsPosition() >= kRollerStartMinPos) {
+                if (intakeSubsystem.getExtendPosition() >= kRollerStartMinPos) {
                     intakeSubsystem.setRollerState(RollerAction.kGetBall);
                 } else{
                     intakeSubsystem.setRollerState(RollerAction.kStop);

@@ -68,7 +68,7 @@ public class SwerveSubsytem extends SubsystemBase {
       DriveConstants.kBackRightTurningMotorReversed,
       "Back Right");
 
-  private final static AHRS gyro = new AHRS(NavXComType.kUSB1);
+  private final static AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
 
   public Field2d field = new Field2d();
 

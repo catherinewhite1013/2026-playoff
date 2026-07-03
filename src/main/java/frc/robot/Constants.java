@@ -51,20 +51,20 @@ public final class Constants {
   public static class IDConstants {
     // Swerve Drive Motor Port
     public static final int kFrontLeftDrivePort = 1;
-    public static final int kFrontRightDrivePort = 2;
+    public static final int kFrontRightDrivePort = 5;
     public static final int kBackLeftDrivePort = 3;// 1
-    public static final int kBackRightDrivePort = 4;// 2
+    public static final int kBackRightDrivePort = 7;// 2
 
     // Swerve Turning Motor Port
-    public static final int kFrontLeftTurnPort = 5;
+    public static final int kFrontLeftTurnPort = 2;
     public static final int kFrontRightTurnPort = 6;
-    public static final int kBackLeftTurnPort = 7;// 5
+    public static final int kBackLeftTurnPort = 4;// 5
     public static final int kBackRightTurnPort = 8;// 6
 
     // Swerve Absolute Encoder Port
     public static final int kFrontLeftDriveAbsoluteEncoderPort = 1;
-    public static final int kFrontRightDriveAbsoluteEncoderPort = 2;
-    public static final int kBackLeftDriveAbsoluteEncoderPort = 3;
+    public static final int kFrontRightDriveAbsoluteEncoderPort = 3;
+    public static final int kBackLeftDriveAbsoluteEncoderPort = 2;
     public static final int kBackRightDriveAbsoluteEncoderPort = 4;
 
     // Intake
