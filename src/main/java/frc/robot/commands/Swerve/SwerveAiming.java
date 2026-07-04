@@ -1,63 +1,80 @@
-// package frc.robot.commands.Swerve;
+package frc.robot.commands.Swerve;
 
-// import edu.wpi.first.math.controller.PIDController;
-// import edu.wpi.first.math.geometry.Rotation2d;
-// import edu.wpi.first.math.geometry.Translation2d;
-// import edu.wpi.first.wpilibj2.command.Command;
-// import frc.robot.Constants.DriveConstants;
-// import frc.robot.subsystems.ShooterSubsystem;
-// import frc.robot.subsystems.Swerve.SwerveSubsytem;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ShooterConstant;
+//import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
-// public class SwerveAiming extends Command {
+public class SwerveAiming extends Command {
     
-//     private final ShooterSubsystem shooterSubsystem;
-//     private final SwerveSubsytem swerveSubsytem;
-//     private int ShootMode = 0;
+    //private final ShooterSubsystem shooterSubsystem;
+    private final SwerveSubsytem swerveSubsytem;
+    private int ShootMode = 0;
 
-//     PIDController pidController = new PIDController(
-//     DriveConstants.kPLockHeading, 
-//     DriveConstants.kILockHeading, 
-//     DriveConstants.kDLockHeading);
+    private double targetAngle = 0;
 
-//     //private final SlewRateLimiter turningLimiter;
+    PIDController pidController = new PIDController(
+    DriveConstants.kPLockHeading, 
+    DriveConstants.kILockHeading, 
+    DriveConstants.kDLockHeading);
 
-//     public SwerveAiming(ShooterSubsystem shooterSubsystem, SwerveSubsytem swerveSubsytem, int ShootMode) {
-//         //this.turningLimiter = new SlewRateLimiter(DriveConstants.kTeleDriveMaxAngularAccelerationUnitsPerSecond);
-//         this.shooterSubsystem = shooterSubsystem;
-//         this.swerveSubsytem = swerveSubsytem;
-//         this.ShootMode = ShootMode;
+    //private final SlewRateLimiter turningLimiter;
 
-//         pidController.enableContinuousInput(-180, 180);
+    public SwerveAiming(/*ShooterSubsystem shooterSubsystem,*/ SwerveSubsytem swerveSubsytem, int ShootMode) {
+        //this.turningLimiter = new SlewRateLimiter(DriveConstants.kTeleDriveMaxAngularAccelerationUnitsPerSecond);
+        //this.shooterSubsystem = shooterSubsystem;
+        this.swerveSubsytem = swerveSubsytem;
+        this.ShootMode = ShootMode;
 
-//         addRequirements(swerveSubsytem);
-//     }
+        pidController.enableContinuousInput(-180, 180);
 
+        addRequirements(swerveSubsytem);
+    }
 
-//     @Override
-//     public void execute() {
-//         switch (ShootMode) {
-//             case 0: // shoot
-//                 Translation2d currentTarget = shooterSubsystem.getTargetHubLocation();
+    @Override
+    public void initialize() {
+        pidController.reset();
+    }
 
-//                 Rotation2d toHubAngle = currentTarget.minus(swerveSubsytem.getPose().getTranslation()).getAngle();
-//                 double targetAngle = toHubAngle.getDegrees();
-//                 double currentAngle = swerveSubsytem.getPose().getRotation().getDegrees();
-//                 //double deltaAngle = MathUtil.inputModulus(targetAngle - currentAngle, -180, 180);
+    @Override
+    public void execute() {
+        
+        switch (ShootMode) {
+            case 0: // shoot
+                Translation2d currentTarget = ShooterConstant.kBlueHubLocation;//shooterSubsystem.getTargetHubLocation();
 
-//                 double rotationSpeed = pidController.calculate(currentAngle, targetAngle);
-//                 swerveSubsytem.setChassisOutput(0, 0, rotationSpeed);
+                Rotation2d targetFieldAngle = currentTarget.minus(swerveSubsytem.getPose().getTranslation()).getAngle(); //change to shooter position later
+                Rotation2d targetRobotRelativeAngle = targetFieldAngle.minus(swerveSubsytem.getPose().getRotation());
+                targetAngle = targetRobotRelativeAngle.getDegrees();
 
-//                 break;
+                double rotationSpeed = pidController.calculate(0, targetAngle);
+                swerveSubsytem.setChassisOutput(0, 0, rotationSpeed);
 
-//             case 1: // pass
-//                 double passCurrentAngle =  swerveSubsytem.getRobotRotation().getDegrees();
-//                 double passRotationSpeed = pidController.calculate(passCurrentAngle, 180);
-//                 swerveSubsytem.setChassisOutput(0, 0, passRotationSpeed);
+                
+                break;
 
-//                 break;
+            case 1: // pass
+                double passCurrentAngle =  swerveSubsytem.getRobotRotation().getDegrees();
+                double passRotationSpeed = pidController.calculate(passCurrentAngle, 180);
+                swerveSubsytem.setChassisOutput(0, 0, passRotationSpeed);
 
-//             default:
-//                 break;
-//         }
-//     }
-// }
+                break;
+
+            default:
+                break;
+        }
+    SmartDashboard.putNumber("targetAngle", targetAngle);
+    SmartDashboard.putNumber("shoot Mode", ShootMode);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+    
+}

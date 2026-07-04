@@ -8,6 +8,7 @@ import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.IntakeConstants.ExtendManual;
 import frc.robot.Constants.IntakeConstants.ExtendState;
 import frc.robot.Constants.StorageConstant.StorageAction;
+import frc.robot.commands.Swerve.SwerveAiming;
 // import frc.robot.commands.StorageCommand;
 // import frc.robot.commands.Intake.IntakeAuto;
 // import frc.robot.commands.Intake.IntakeExtendManual;
@@ -102,7 +103,8 @@ public class RobotContainer {
     //   new ParallelCommandGroup(
     //     new SwerveAiming(shooterSubsystem, swerveSubsytem, 0),
     //     new AutoShoot(shooterSubsystem, swerveSubsytem)));
-
+    m_driverController.leftBumper().whileTrue(new SwerveAiming(swerveSubsytem, 1));
+    m_driverController.rightBumper().whileTrue(new SwerveAiming(swerveSubsytem, 0));
     // m_operatorController.rightBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));  //shooter ball convey
 
     // m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake

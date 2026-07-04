@@ -143,9 +143,9 @@ public final class Constants {
 
     public static final double kMotorMaxOutput = 1;
 
-    public static final double kPLockHeading = 0.02;
-    public static final double kILockHeading = 0.025;
-    public static final double kDLockHeading = 0.001;
+    public static final double kPLockHeading = 0.07;
+    public static final double kILockHeading = 0.0;
+    public static final double kDLockHeading = 0.002;
 
     public static final Matrix<N3, N1> kStateStdDevs = VecBuilder.fill(0.1, 0.1, Math.toRadians(2));
     public static final Matrix<N3, N1> kVisionStdDevs = VecBuilder.fill(1.2, 1.2, Math.toRadians(45));
