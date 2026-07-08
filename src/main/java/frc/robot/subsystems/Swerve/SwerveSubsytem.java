@@ -16,9 +16,9 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -83,16 +83,8 @@ public class SwerveSubsytem extends SubsystemBase {
 
   // Create odometer for swerve drive
   private final SwerveDrivePoseEstimator poseEstimator;
-  private final SwerveDriveOdometry encoderOdometry;
 
   private Pose2d estPose2d = new Pose2d();
-  private Pose2d encoderPose2d = new Pose2d();
-  private Pose2d latestVisionPose = new Pose2d();
-  private boolean hasSeededPoseWithVision = false;
-  private double lastVisionTimestamp = -1.0;
-  private double lastVisionTagCount = 0.0;
-  private boolean lastVisionWasAccepted = false;
-  private double gyroFieldOffsetDegrees = 0.0;
 
   /* Creates a new SwerveSubsytem. */
   public SwerveSubsytem() {
@@ -117,11 +109,6 @@ public class SwerveSubsytem extends SubsystemBase {
         VecBuilder.fill(0.1, 0.1, 0.1),  // 狀態標準差 (X, Y, Theta)
         VecBuilder.fill(0.9, 0.9, 0.9)   // 視覺標準差 (X, Y, Theta)，數值越小越信任視覺
     );
-    encoderOdometry = new SwerveDriveOdometry(
-        DriveConstants.kDriveKinematics,
-        getRobotRotation(),
-        getModulePositions(),
-        new Pose2d());
 
     // Set default PID values for thetaPID
     thetaController = new PIDController(
@@ -193,12 +180,10 @@ public class SwerveSubsytem extends SubsystemBase {
 
     var alliance = DriverStation.getAlliance();
     if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
-      gyroFieldOffsetDegrees = 180.0 - getRawRobotAngle();
-      resetOdometry(new Pose2d(estPose2d.getTranslation(), Rotation2d.kPi));
+      resetOdometry(new Pose2d(Translation2d.kZero, Rotation2d.kPi));
       poseEstimator.resetRotation(Rotation2d.kPi);
     } else {
-      gyroFieldOffsetDegrees = -getRawRobotAngle();
-      resetOdometry(new Pose2d(estPose2d.getTranslation(), Rotation2d.kZero));
+      resetOdometry(new Pose2d(Translation2d.kZero, Rotation2d.kZero));
       poseEstimator.resetRotation(Rotation2d.kZero);
     }
 
@@ -207,12 +192,8 @@ public class SwerveSubsytem extends SubsystemBase {
   }
 
   // Returns an angle from 0 to 360 that is continuous, meaning it loops
-  private double getRawRobotAngle() {
-    return (-gyro.getAngle() % 360 + 360) % 360;
-  }
-
   public double getRobotAngle() {
-    return (getRawRobotAngle() + gyroFieldOffsetDegrees + 360) % 360;
+    return (-gyro.getAngle() % 360 + 360) % 360;
   }
 
   // Stop all module movement
@@ -321,7 +302,6 @@ public class SwerveSubsytem extends SubsystemBase {
   // Reset odometer to new Pose2d location
   public void resetOdometry(Pose2d pose) {
     poseEstimator.resetPosition(getRobotRotation(), getModulePositions(), pose);
-    encoderOdometry.resetPosition(getRobotRotation(), getModulePositions(), pose);
   }
 
   // Return an angle from -180 to 180 for robot odometry
@@ -354,88 +334,36 @@ public class SwerveSubsytem extends SubsystemBase {
     return gyro;
   }
 
-  private LimelightHelpers.PoseEstimate getBestLimelightPoseEstimate() {
-    LimelightHelpers.PoseEstimate mt1 =
-        LimelightHelpers.getBotPoseEstimate_wpiBlue(LimelightConstants.kLimelightName);
-    if (!hasSeededPoseWithVision && isValidVisionEstimate(mt1)) {
-      return mt1;
-    }
-
-    LimelightHelpers.PoseEstimate mt2 =
-        LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightConstants.kLimelightName);
-    if (isValidVisionEstimate(mt2)) {
-      return mt2;
-    }
-
-    return mt1;
-  }
-
-  private boolean isValidVisionEstimate(LimelightHelpers.PoseEstimate estimate) {
-    if (estimate == null || estimate.tagCount <= 0) {
-      return false;
-    }
-
-    Pose2d pose = estimate.pose;
-    if (pose == null || estimate.timestampSeconds <= 0.0) {
-      return false;
-    }
-
-    if (estimate.timestampSeconds <= lastVisionTimestamp) {
-      return false;
-    }
-
-    double x = pose.getX();
-    double y = pose.getY();
-    if (Double.isNaN(x) || Double.isNaN(y)) {
-      return false;
-    }
-
-    return !(Math.abs(x) < 0.01 && Math.abs(y) < 0.01);
-  }
-
-  private void addVisionMeasurement(LimelightHelpers.PoseEstimate estimate) {
-    latestVisionPose = estimate.pose;
-    lastVisionTimestamp = estimate.timestampSeconds;
-    lastVisionTagCount = estimate.tagCount;
-
-    if (!hasSeededPoseWithVision) {
-      gyroFieldOffsetDegrees =
-          latestVisionPose.getRotation().getDegrees() - getRawRobotAngle();
-      poseEstimator.resetPosition(getRobotRotation(), getModulePositions(), latestVisionPose);
-      hasSeededPoseWithVision = true;
-      return;
-    }
-
-    poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.35, 0.35, 9999999));
-    poseEstimator.addVisionMeasurement(latestVisionPose, estimate.timestampSeconds);
-  }
-
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
 
     poseEstimator.update(getRobotRotation(), getModulePositions());
-    encoderPose2d = encoderOdometry.update(getRobotRotation(), getModulePositions());
 
 
-    LimelightHelpers.SetRobotOrientation_NoFlush(
-        LimelightConstants.kLimelightName, 
-        getRobotRotation().getDegrees(),
-        0, 0, 0, 0, 0);
+    LimelightHelpers.SetRobotOrientation(LimelightConstants.kLimelightName, 
+    poseEstimator.getEstimatedPosition().getRotation().getDegrees(),
+    0, 0, 0, 0, 0
+    );
 
-    lastVisionWasAccepted = false;
-    LimelightHelpers.PoseEstimate visionEstimate = getBestLimelightPoseEstimate();
-    if (LimelightHelpers.getTV(LimelightConstants.kLimelightName)
-        && isValidVisionEstimate(visionEstimate)) {
-      addVisionMeasurement(visionEstimate);
-      lastVisionWasAccepted = true;
+    LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightConstants.kLimelightName);
+    if (LimelightHelpers.getTV(LimelightConstants.kLimelightName)) {
+      
+      Boolean doRejectUpdate = false;
+
+      if (mt2.tagCount == 0) {
+        doRejectUpdate = true;
+      }
+
+      if (!doRejectUpdate) {
+      poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+      poseEstimator.addVisionMeasurement(
+        mt2.pose,
+        mt2.timestampSeconds);
+      }
     }
 
-    estPose2d = poseEstimator.getEstimatedPosition();
-    field.setRobotPose(estPose2d);
-    field.getObject("Encoder").setPose(encoderPose2d);
-    field.getObject("Vision").setPose(latestVisionPose);
-    field.getObject("Estimated").setPose(estPose2d);
+    field.getObject("Odometry").setPose(poseEstimator.getEstimatedPosition());
 
     
 
@@ -451,16 +379,11 @@ public class SwerveSubsytem extends SubsystemBase {
     // odometer.update(angle, positions);
 
     // Debug
-    SmartDashboard.putNumber("Estimated X", estPose2d.getX());
-    SmartDashboard.putNumber("Estimated Y", estPose2d.getY());
-    SmartDashboard.putNumber("Estimated Angle", estPose2d.getRotation().getDegrees());
-    SmartDashboard.putNumber("Encoder X", encoderPose2d.getX());
-    SmartDashboard.putNumber("Encoder Y", encoderPose2d.getY());
-    SmartDashboard.putNumber("Vision X", latestVisionPose.getX());
-    SmartDashboard.putNumber("Vision Y", latestVisionPose.getY());
-    SmartDashboard.putNumber("Vision Tag Count", lastVisionTagCount);
-    SmartDashboard.putBoolean("Vision Seeded Pose", hasSeededPoseWithVision);
-    SmartDashboard.putBoolean("Vision Accepted", lastVisionWasAccepted);
+    SmartDashboard.putNumber("Odometry X", poseEstimator.getEstimatedPosition().getX());
+    SmartDashboard.putNumber("Odometry Y", poseEstimator.getEstimatedPosition().getY());
+    SmartDashboard.putNumber("Odometry Angle", poseEstimator.getEstimatedPosition().getRotation().getDegrees());
+
+    // field.setRobotPose(getPose());
 
     // frontLeft.update();
     // frontRight.update();
