@@ -100,7 +100,7 @@ public class RobotContainer {
     //operator
     m_operatorController.leftBumper().whileTrue(  //aiming
       new ParallelCommandGroup(
-        new SwerveAiming(shooterSubsystem, swerveSubsytem, 0),
+        new SwerveAiming(swerveSubsytem, 0),
         new AutoShoot(shooterSubsystem, swerveSubsytem)));
 
     m_operatorController.rightBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));  //shooter ball convey
@@ -125,7 +125,7 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("AutoShootCommand",
       new ParallelCommandGroup(
-        new SwerveAiming(shooterSubsystem, swerveSubsytem, 0),
+        new SwerveAiming(swerveSubsytem, 0),
         new AutoShoot(shooterSubsystem, swerveSubsytem)));
 
   }
