@@ -7,15 +7,18 @@ package frc.robot;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.IntakeConstants.ExtendManual;
 import frc.robot.Constants.IntakeConstants.ExtendState;
+import frc.robot.Constants.IntakeConstants.RollerAction;
 import frc.robot.Constants.StorageConstant.StorageAction;
 import frc.robot.commands.StorageCommand;
 import frc.robot.commands.Intake.IntakeAuto;
 import frc.robot.commands.Intake.IntakeExtendManual;
-import frc.robot.commands.Shooter.AutoShoot;
+import frc.robot.commands.Intake.IntakeRetract;
+import frc.robot.commands.Intake.IntakeRollerManual;
+//import frc.robot.commands.Shooter.AutoShoot;
 import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
+//import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.StorageSubsystem;
 import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
@@ -43,7 +46,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsytem swerveSubsytem = new SwerveSubsytem();
-  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  //private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final StorageSubsystem storageSubsystem = new StorageSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   
@@ -98,17 +101,21 @@ public class RobotContainer {
     m_driverController.start().whileTrue(new InstantCommand(() -> swerveSubsytem.zeroHeading()));
 
     //operator
-    m_operatorController.leftBumper().whileTrue(  //aiming
-      new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem, 0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem)));
+    // m_operatorController.leftBumper().whileTrue(  //aiming
+    //   new ParallelCommandGroup(
+    //     new SwerveAiming(swerveSubsytem, 0),
+    //     new AutoShoot(shooterSubsystem, swerveSubsytem)));
 
-    m_operatorController.rightBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));  //shooter ball convey
+    m_operatorController.rightBumper().whileTrue(new ParallelCommandGroup(
+      new StorageCommand(storageSubsystem),
+      new IntakeRetract(intakeSubsystem)
+      ));  //shooter ball convey
 
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
     m_operatorController.pov(180).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kIn));
     m_operatorController.y().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
     m_operatorController.a().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
+    m_operatorController.b().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
 
 
   }
@@ -123,10 +130,10 @@ public class RobotContainer {
 
   private void configureNamedCommands() {
 
-    NamedCommands.registerCommand("AutoShootCommand",
-      new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem, 0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem)));
+    // NamedCommands.registerCommand("AutoShootCommand",
+    //   new ParallelCommandGroup(
+    //     new SwerveAiming(swerveSubsytem, 0),
+    //     new AutoShoot(shooterSubsystem, swerveSubsytem)));
 
   }
 

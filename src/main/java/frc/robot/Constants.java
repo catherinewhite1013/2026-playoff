@@ -68,12 +68,12 @@ public final class Constants {
     public static final int kBackRightDriveAbsoluteEncoderPort = 4;
 
     // Intake
-    public static final int kRollerPort = 0;
-    public static final int kExtendPort = 0;
+    public static final int kRollerPort = 11;
+    public static final int kExtendPort = 10;
 
     // Storage
-    public static final int kStoragePort = 0;
-    public static final int kShooterFeedPort = 0;
+    public static final int kStoragePort = 5; //talonfx
+    public static final int kShooterFeedPort = 9;
 
     // Shooter
     public static final int kShooterMainPort = 0;
@@ -169,7 +169,7 @@ public final class Constants {
 
   public static final class IntakeConstants {
 
-    public static final double kExtendFowardPosLimit = 0.0;
+    public static final double kExtendFowardPosLimit = 54.0;
     public static final double kExtendReversePosLimit = 0.0;
 
     public static final double kP = 0;
@@ -182,8 +182,8 @@ public final class Constants {
     public static final double kRollerStartMinPos = 0.0;
 
     public enum ExtendManual{
-      kOut(0.5),
-      kIn(0.5),
+      kOut(0.3),
+      kIn(-0.3),
       kStop(0.0);
 
       public final double rate;
@@ -220,9 +220,9 @@ public final class Constants {
   public static final class StorageConstant {
     
     public enum StorageAction{
-      kIn(0.8),
+      kIn(0.5),
       kStop(0.0),
-      kOut(0.8);
+      kOut(-0.5);
 
       public final double state;
 
@@ -232,9 +232,9 @@ public final class Constants {
     }
 
     public enum ShooterFeedAction{
-      kIn(0.8),
+      kIn(0.5),
       kStop(0.0),
-      kOut(0.8);
+      kOut(-0.5);
 
       public final double state;
 

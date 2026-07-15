@@ -9,28 +9,27 @@ public class StorageCommand extends InstantCommand{
     private StorageSubsystem storageSubsystem;
     private StorageAction storageAction;
 
-    public StorageCommand(StorageSubsystem storageSubsystem, StorageAction storageAction){
+    public StorageCommand(StorageSubsystem storageSubsystem){
         this.storageSubsystem = storageSubsystem;
         this.storageAction = storageAction;
     }
 
     @Override
     public void initialize(){
-        switch (storageAction) {
-            case kIn:
-                storageSubsystem.setStorageAction(StorageAction.kIn, ShooterFeedAction.kIn);
-                break;
+        storageSubsystem.setStorageAction(StorageAction.kIn, ShooterFeedAction.kIn);
+    }
 
-            case kOut:
-                storageSubsystem.setStorageAction(StorageAction.kOut, ShooterFeedAction.kOut);
-                break;
+    @Override
+    public void execute() {
+    }
 
-            case kStop:
-                storageSubsystem.setStorageAction(StorageAction.kStop, ShooterFeedAction.kStop);
-                break;
+    @Override
+    public void end(boolean interrupted){
+        storageSubsystem.setStorageAction(StorageAction.kStop, ShooterFeedAction.kStop);
+    }
 
-            default:
-                break;
-        }
+    @Override
+    public boolean isFinished() {
+        return false;
     }
 }
