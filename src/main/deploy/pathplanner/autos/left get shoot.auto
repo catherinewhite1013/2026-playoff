@@ -7,13 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Auto leave 2"
+            "pathName": "New Path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New New Path"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Play",
+  "folder": null,
   "choreoAuto": false
 }

@@ -169,7 +169,7 @@ public final class Constants {
 
   public static final class IntakeConstants {
 
-    public static final double kExtendFowardPosLimit = 54.0;
+    public static final double kExtendFowardPosLimit = 50.0;
     public static final double kExtendReversePosLimit = 0.0;
 
     public static final double kP = 0;
