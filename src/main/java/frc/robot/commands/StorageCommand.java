@@ -33,4 +33,18 @@ public class StorageCommand extends InstantCommand{
                 break;
         }
     }
+
+    @Override
+    public void execute() {
+    }
+
+    @Override
+    public void end(boolean interrupted){
+        storageSubsystem.setStorageAction(StorageAction.kStop, ShooterFeedAction.kStop);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
 }

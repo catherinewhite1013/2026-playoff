@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
@@ -38,13 +37,13 @@ public class IntakeSubsystem extends SubsystemBase{
     public IntakeSubsystem() {
         
         rollerConfig
-            .inverted(false)
+            .inverted(true)
             .idleMode(IdleMode.kCoast)
             .smartCurrentLimit(70);
 
         extendConfig
             .inverted(false)
-            .idleMode(IdleMode.kCoast)
+            .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(60)
             .softLimit
             .forwardSoftLimitEnabled(true)
@@ -52,7 +51,7 @@ public class IntakeSubsystem extends SubsystemBase{
             .forwardSoftLimit(kExtendFowardPosLimit)
             .reverseSoftLimit(kExtendReversePosLimit);
         extendConfig.closedLoop
-        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pid(kP, kI, kD)
         .outputRange(kExtendMinOutput, kExtendMaxOutput);
 
@@ -83,6 +82,10 @@ public class IntakeSubsystem extends SubsystemBase{
 
     public void stopextendMotor(){
         extendMotor.stopMotor();
+    }
+
+    public void stopRollerMotor(){
+        rollerMotor.stopMotor();
     }
 
 
