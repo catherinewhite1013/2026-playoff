@@ -6,7 +6,10 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -22,21 +25,24 @@ public class StorageSubsystem extends SubsystemBase{
     private final TalonFX storageMotor = new TalonFX(IDConstants.kStoragePort);
     private final SparkFlex shooterFeedMotor = new SparkFlex(IDConstants.kShooterFeedPort, MotorType.kBrushless);
     private TalonFXConfiguration storageConfig = new TalonFXConfiguration();
-    private SparkMaxConfig shooterFeedConfig = new SparkMaxConfig();
+    private SparkFlexConfig shooterFeedConfig = new SparkFlexConfig();
 
     public StorageSubsystem(){
 
         storageConfig.withMotorOutput(new MotorOutputConfigs()
-            .withInverted(InvertedValue.Clockwise_Positive)
+            .withInverted(InvertedValue.CounterClockwise_Positive)
             .withNeutralMode(NeutralModeValue.Coast)
             .withPeakForwardDutyCycle(1)
             .withPeakReverseDutyCycle(-1));
 
         shooterFeedConfig
-            .inverted(false)
+            .inverted(true)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(80);
 
+        shooterFeedMotor.configure(shooterFeedConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        storageMotor.getConfigurator().apply(storageConfig);
+        
         HardwareHealth.getInstance().register(new CheckableSpark(shooterFeedMotor, "Storage/shooter feed"));
         HardwareHealth.getInstance().register(new CheckableTalonFX(storageMotor, "Storage/conveyor"));
     }

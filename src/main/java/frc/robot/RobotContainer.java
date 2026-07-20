@@ -107,8 +107,8 @@ public class RobotContainer {
     //     new AutoShoot(shooterSubsystem, swerveSubsytem)));
 
     m_operatorController.rightBumper().whileTrue(new ParallelCommandGroup(
-      new StorageCommand(storageSubsystem, StorageAction.kIn),
-      new IntakeRetract(intakeSubsystem)
+      new StorageCommand(storageSubsystem, StorageAction.kIn)
+      //new IntakeRetract(intakeSubsystem)
       ));
 
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
