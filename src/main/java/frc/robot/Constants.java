@@ -52,13 +52,13 @@ public final class Constants {
     // Swerve Drive Motor Port
     public static final int kFrontLeftDrivePort = 1;
     public static final int kFrontRightDrivePort = 5;
-    public static final int kBackLeftDrivePort = 3;// 1
+    public static final int kBackLeftDrivePort = 4;// 1
     public static final int kBackRightDrivePort = 7;// 2
 
     // Swerve Turning Motor Port
     public static final int kFrontLeftTurnPort = 2;
     public static final int kFrontRightTurnPort = 6;
-    public static final int kBackLeftTurnPort = 4;// 5
+    public static final int kBackLeftTurnPort = 3;// 5
     public static final int kBackRightTurnPort = 8;// 6
 
     // Swerve Absolute Encoder Port
@@ -76,8 +76,8 @@ public final class Constants {
     public static final int kShooterFeedPort = 9;
 
     // Shooter
-    public static final int kShooterMainPort = 0;
-    public static final int kShooterSecondaryPort = 0;
+    public static final int kShooterMainPort = 6; //talonfx
+    public static final int kShooterSecondaryPort = 12;
   }
 
   // SwerveModule
@@ -169,21 +169,21 @@ public final class Constants {
 
   public static final class IntakeConstants {
 
-    public static final double kExtendFowardPosLimit = 50.0;
+    public static final double kExtendFowardPosLimit = 47.0;
     public static final double kExtendReversePosLimit = 0.0;
 
-    public static final double kP = 0;
+    public static final double kP = 0.05;
     public static final double kI = 0;
     public static final double kD = 0;
     
     public static final double kExtendMaxOutput = 0.5;
     public static final double kExtendMinOutput = -0.5;
 
-    public static final double kRollerStartMinPos = 0.0;
+    public static final double kRollerStartMinPos = 40.0;
 
     public enum ExtendManual{
-      kOut(0.3),
-      kIn(-0.3),
+      kOut(0.2),
+      kIn(-0.2),
       kStop(0.0);
 
       public final double rate;
@@ -194,8 +194,8 @@ public final class Constants {
     }
 
     public enum ExtendState{
-      kExtend(0),
-      kClose(0);
+      kExtend(kExtendFowardPosLimit-1),
+      kClose(kExtendReversePosLimit+2);
 
       public final double position;
 
@@ -247,15 +247,15 @@ public final class Constants {
   public static final class ShooterConstant {
     
     public static final double kMainFlywheelBeltRatio = 24/36; //Sensor To Mechanism Ratio
-    public static final double kMainFlywheelkV = 0.0;
-    public static final double kMainFlywheelkS = 0.0;
-    public static final double kMainFlywheelkP = 0.0;
+    public static final double kMainFlywheelkV = 0.1;
+    public static final double kMainFlywheelkS = 0.2;
+    public static final double kMainFlywheelkP = 0.8;
 
-    public static final double kSecondaryFlywheelKP = 0.0;
+    public static final double kSecondaryFlywheelKP = 0.0003;
     public static final double kSecondaryFlywheelKI = 0.0;
-    public static final double kSecondaryFlywheelKD = 0.0;
-    public static final double kSecondaryFlywheelKV = 0.0;
-    public static final double kSecondaryFlywheelKS = 0.0;
+    public static final double kSecondaryFlywheelKD = 0.2;
+    public static final double kSecondaryFlywheelKV = 0.002;
+    public static final double kSecondaryFlywheelKS = 0.2;
 
     public static final Translation2d kRobotToShooter = new Translation2d(0.0, 0.0);
 
@@ -273,9 +273,10 @@ public final class Constants {
     public static final Translation2d kRedHubLocation = new Translation2d(
         Units.inchesToMeters(468.56),
         Units.inchesToMeters(158.32)); // Welded:Units.inchesToMeters(469.11), Units.inchesToMeters(158.84)
+    
+    public static final double kRedPassLocation = Units.inchesToMeters(100);
+    public static final double kBluePassLocation = Units.inchesToMeters(40);
 
-    
-    
   }
 
 

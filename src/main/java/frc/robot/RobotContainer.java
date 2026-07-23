@@ -14,11 +14,15 @@ import frc.robot.commands.Intake.IntakeAuto;
 import frc.robot.commands.Intake.IntakeExtendManual;
 import frc.robot.commands.Intake.IntakeRetract;
 import frc.robot.commands.Intake.IntakeRollerManual;
-//import frc.robot.commands.Shooter.AutoShoot;
+import frc.robot.commands.Shooter.FlywheelTuning;
+import frc.robot.commands.Shooter.ManualShoot;
+import frc.robot.commands.Shooter.AutoPass;
+import frc.robot.commands.Shooter.AutoShoot;
 import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
 import frc.robot.subsystems.IntakeSubsystem;
-//import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.StorageSubsystem;
 import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
@@ -31,6 +35,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -49,6 +54,7 @@ public class RobotContainer {
   //private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final StorageSubsystem storageSubsystem = new StorageSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   
 
   private static CommandXboxController m_driverController = new CommandXboxController(
@@ -101,21 +107,27 @@ public class RobotContainer {
     m_driverController.start().whileTrue(new InstantCommand(() -> swerveSubsytem.zeroHeading()));
 
     //operator
-    // m_operatorController.leftBumper().whileTrue(  //aiming
-    //   new ParallelCommandGroup(
-    //     new SwerveAiming(swerveSubsytem, 0),
-    //     new AutoShoot(shooterSubsystem, swerveSubsytem)));
+    m_driverController.leftBumper().whileTrue(  //aiming
+      new ParallelCommandGroup(
+        new SwerveAiming(swerveSubsytem, 0),
+        new AutoShoot(shooterSubsystem, swerveSubsytem)));
+
+    m_driverController.rightBumper().whileTrue(new ParallelCommandGroup(
+      new SwerveAiming(swerveSubsytem, 1),
+      new AutoPass(shooterSubsystem, swerveSubsytem)));
 
     m_operatorController.rightBumper().whileTrue(new ParallelCommandGroup(
-      new StorageCommand(storageSubsystem, StorageAction.kIn)
-      //new IntakeRetract(intakeSubsystem)
+      new StorageCommand(storageSubsystem, StorageAction.kIn),
+      new WaitCommand(1),
+      new IntakeRetract(intakeSubsystem)
       ));
 
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
     m_operatorController.pov(180).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kIn));
-    m_operatorController.y().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
-    m_operatorController.a().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
-    m_operatorController.b().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
+    m_driverController.y().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+    m_driverController.a().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
+    m_driverController.b().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
+    m_operatorController.x().whileTrue(new FlywheelTuning(shooterSubsystem));
 
 
   }

@@ -3,6 +3,7 @@ package frc.robot.commands.Intake;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ExtendManual;
+import frc.robot.Constants.IntakeConstants.ExtendState;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeRetract extends Command{
@@ -32,7 +33,7 @@ public class IntakeRetract extends Command{
 
     @Override
     public void end(boolean interrupted){
-        intakeSubsystem.setExtendManual(ExtendManual.kOut);
+        intakeSubsystem.setExtendAuto(ExtendState.kExtend);
     }
 
     @Override
