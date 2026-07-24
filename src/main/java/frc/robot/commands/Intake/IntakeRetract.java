@@ -16,18 +16,18 @@ public class IntakeRetract extends Command{
 
     @Override
     public void initialize() {
-        if (intakeSubsystem.getExtendPosition() > IntakeConstants.kExtendReversePosLimit+5) {
+
+    }
+
+    @Override
+    public void execute() {
+        if (intakeSubsystem.getExtendPosition() > IntakeConstants.kExtendReversePosLimit+20) {
             intakeSubsystem.setExtendManual(ExtendManual.kIn);
             intakeSubsystem.stopRollerMotor();
         } else{
             intakeSubsystem.setExtendManual(ExtendManual.kStop);
             intakeSubsystem.stopRollerMotor();
-        }
-    }
-
-    @Override
-    public void execute() {
-        
+        }        
 
     }
 

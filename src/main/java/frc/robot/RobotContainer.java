@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -142,11 +143,19 @@ public class RobotContainer {
 
   private void configureNamedCommands() {
 
-    // NamedCommands.registerCommand("AutoShootCommand",
-    //   new ParallelCommandGroup(
-    //     new SwerveAiming(swerveSubsytem, 0),
-    //     new AutoShoot(shooterSubsystem, swerveSubsytem)));
+    NamedCommands.registerCommand("AutoShootCommand",
+      new ParallelCommandGroup(
+        new SwerveAiming(swerveSubsytem, 0),
+        new AutoShoot(shooterSubsystem, swerveSubsytem),
+        new WaitUntilCommand(()-> shooterSubsystem.isReady()),
+        new StorageCommand(storageSubsystem, StorageAction.kIn),
+        new WaitCommand(1),
+        new IntakeRetract(intakeSubsystem)));
 
+    NamedCommands.registerCommand("IntakeGetBall", 
+      new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+
+    
   }
 
   /**

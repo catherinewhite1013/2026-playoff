@@ -5,15 +5,27 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "New Path"
+            "name": "IntakeGetBall"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "New New Path"
+            "pathName": "Left get"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left bump shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AutoShootCommand"
           }
         }
       ]

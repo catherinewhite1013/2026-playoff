@@ -264,8 +264,8 @@ public final class Constants {
       {2.0, 0.0, 0.0},
     };
 
-    public static final double kMainFlywheelErrTolerence = 100;
-    public static final double kSecondaryFlywheelErrTolerence = 50;
+    public static final double kMainFlywheelErrTolerence = 200;
+    public static final double kSecondaryFlywheelErrTolerence = 200;
 
     public static final Translation2d kBlueHubLocation = new Translation2d(
         Units.inchesToMeters(181.56),
