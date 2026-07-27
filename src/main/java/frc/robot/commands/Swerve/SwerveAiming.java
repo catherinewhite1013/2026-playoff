@@ -16,12 +16,15 @@ public class SwerveAiming extends Command {
     private final SwerveSubsytem swerveSubsytem;
     private int ShootMode = 0;
 
+    private double currentRobotAngle = 0;
     private double targetAngle = 0;
 
     PIDController pidController = new PIDController(
     DriveConstants.kPLockHeading, 
     DriveConstants.kILockHeading, 
     DriveConstants.kDLockHeading);
+
+    
 
     //private final SlewRateLimiter turningLimiter;
 
@@ -31,8 +34,8 @@ public class SwerveAiming extends Command {
         this.swerveSubsytem = swerveSubsytem;
         this.ShootMode = ShootMode;
 
-        pidController.enableContinuousInput(-180, 180);
-
+        pidController.enableContinuousInput(0, 360);
+        pidController.setTolerance(DriveConstants.kAimingErrTolerence);
         addRequirements(swerveSubsytem);
     }
 
@@ -49,18 +52,19 @@ public class SwerveAiming extends Command {
                 Translation2d currentTarget = ShooterConstant.kBlueHubLocation;//shooterSubsystem.getTargetHubLocation();
 
                 Rotation2d targetFieldAngle = currentTarget.minus(swerveSubsytem.getPose().getTranslation()).getAngle(); //change to shooter position later
-                Rotation2d targetRobotRelativeAngle = targetFieldAngle.minus(swerveSubsytem.getPose().getRotation());
-                targetAngle = targetRobotRelativeAngle.getDegrees();
+                //Rotation2d targetRobotRelativeAngle = targetFieldAngle.minus(swerveSubsytem.getPose().getRotation());
+                targetAngle = targetFieldAngle.getDegrees();
 
-                double rotationSpeed = pidController.calculate(0, targetAngle);
+                currentRobotAngle = swerveSubsytem.getPose().getRotation().getDegrees();
+                double rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
                 swerveSubsytem.setChassisOutput(0, 0, rotationSpeed);
 
                 
                 break;
 
             case 1: // pass
-                double passCurrentAngle =  swerveSubsytem.getRobotRotation().getDegrees();
-                double passRotationSpeed = pidController.calculate(passCurrentAngle, 180);
+                currentRobotAngle =  swerveSubsytem.getRobotRotation().getDegrees();
+                double passRotationSpeed = pidController.calculate(currentRobotAngle, 180);
                 swerveSubsytem.setChassisOutput(0, 0, passRotationSpeed);
 
                 break;
@@ -69,6 +73,7 @@ public class SwerveAiming extends Command {
                 break;
         }
     SmartDashboard.putNumber("targetAngle", targetAngle);
+    SmartDashboard.putNumber("DeltaAngle", targetAngle-currentRobotAngle);
     SmartDashboard.putNumber("shoot Mode", ShootMode);
     }
 

@@ -227,6 +227,7 @@ public class ShooterSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Shooter/Calc Target Rotate Deg", angleToHub.getDegrees());
         SmartDashboard.putNumber("Shooter/Calc TargetRPM", mainFlywheelSpeed.get(distanceToHub));
         SmartDashboard.putNumber("Shooter/Calc TargetAngle", secFlywheelSpeed.get(distanceToHub));
+        SmartDashboard.putNumber("Shooter/Calc Delta Angle To hub", angleToHub.getDegrees()-robotPose.getRotation().getDegrees());
     }
 
     public void FlywheelTuning(){

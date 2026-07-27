@@ -118,11 +118,7 @@ public class RobotContainer {
       new SwerveAiming(swerveSubsytem, 1),
       new AutoPass(shooterSubsystem, swerveSubsytem)));
 
-    m_operatorController.rightBumper().whileTrue(new SequentialCommandGroup(
-      new StorageCommand(storageSubsystem, StorageAction.kIn),
-      new WaitCommand(1),
-      new IntakeRetract(intakeSubsystem)
-      ));
+    m_operatorController.rightBumper().whileTrue(new IntakeRetract(intakeSubsystem,storageSubsystem));
 
     m_operatorController.leftBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));
 
@@ -132,15 +128,15 @@ public class RobotContainer {
     m_driverController.leftBumper().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
     m_driverController.y().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
     m_operatorController.x().whileTrue(new FlywheelTuning(shooterSubsystem));
-
+    m_operatorController.y().whileTrue(new InstantCommand(()-> shooterSubsystem.calcShooterToHub(swerveSubsytem.getPose())));
 
   }
 
   private void setDefaultCommand() {
     swerveSubsytem.setDefaultCommand(new SwerveFieldRelative(swerveSubsytem,
-        () -> -m_driverController.getLeftY(), // X-Axis
-        () -> -m_driverController.getLeftX(), // Y-Axis
-        () -> -m_driverController.getRightX() // R-Axis
+        () -> m_driverController.getLeftY(), // X-Axis
+        () -> m_driverController.getLeftX(), // Y-Axis
+        () -> m_driverController.getRightX() // R-Axis
     ));
   }
 

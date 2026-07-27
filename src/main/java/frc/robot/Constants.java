@@ -52,8 +52,8 @@ public final class Constants {
     // Swerve Drive Motor Port
     public static final int kFrontLeftDrivePort = 1;
     public static final int kFrontRightDrivePort = 2;
-    public static final int kBackLeftDrivePort = 3;// 1
-    public static final int kBackRightDrivePort = 4;// 2
+    public static final int kBackLeftDrivePort = 4;// 1
+    public static final int kBackRightDrivePort = 3;// 2
 
     // Swerve Turning Motor Port
     public static final int kFrontLeftTurnPort = 5;
@@ -64,8 +64,8 @@ public final class Constants {
     // Swerve Absolute Encoder Port
     public static final int kFrontLeftDriveAbsoluteEncoderPort = 1;
     public static final int kFrontRightDriveAbsoluteEncoderPort = 2;
-    public static final int kBackLeftDriveAbsoluteEncoderPort = 3;
-    public static final int kBackRightDriveAbsoluteEncoderPort = 4;
+    public static final int kBackLeftDriveAbsoluteEncoderPort = 4;
+    public static final int kBackRightDriveAbsoluteEncoderPort = 3;
 
     // Intake
     public static final int kRollerPort = 11;
@@ -148,9 +148,10 @@ public final class Constants {
 
     public static final double kMotorMaxOutput = 1;
 
-    public static final double kPLockHeading = 0.07;
+    public static final double kPLockHeading = 0.05;
     public static final double kILockHeading = 0.0;
-    public static final double kDLockHeading = 0.002;
+    public static final double kDLockHeading = 0.01;
+    public static final double kAimingErrTolerence = 15;
 
     public static final Matrix<N3, N1> kStateStdDevs = VecBuilder.fill(0.1, 0.1, Math.toRadians(2));
     public static final Matrix<N3, N1> kVisionStdDevs = VecBuilder.fill(1.2, 1.2, Math.toRadians(45));
@@ -174,7 +175,7 @@ public final class Constants {
 
   public static final class IntakeConstants {
 
-    public static final double kExtendFowardPosLimit = 47.0;
+    public static final double kExtendFowardPosLimit = 48.0;
     public static final double kExtendReversePosLimit = 0.0;
 
     public static final double kP = 0.05;
@@ -199,7 +200,7 @@ public final class Constants {
     }
 
     public enum ExtendState{
-      kExtend(kExtendFowardPosLimit-1),
+      kExtend(kExtendFowardPosLimit),
       kClose(kExtendReversePosLimit+2);
 
       public final double position;
@@ -267,6 +268,7 @@ public final class Constants {
     public static final double[][] kShooterDataMap = {
       {1.0, 0.0, 0.0},
       {2.0, 0.0, 0.0},
+      {2.5, 0.0, 0.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 200;
