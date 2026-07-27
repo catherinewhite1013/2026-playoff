@@ -150,8 +150,17 @@ public final class Constants {
 
     public static final double kPLockHeading = 0.05;
     public static final double kILockHeading = 0.0;
-    public static final double kDLockHeading = 0.01;
-    public static final double kAimingErrTolerence = 15;
+    public static final double kDLockHeading = 0.0;
+    public static final double kAimingErrTolerence = 2.0;
+
+    public static final double kPFieldLockTranslation = 1.0;
+    public static final double kIFieldLockTranslation = 0.0;
+    public static final double kDFieldLockTranslation = 0.0;
+    public static final double kFieldLockTranslationToleranceMeters = 0.03;
+    public static final double kFieldLockMaxSpeedMetersPerSecond = 0.75;
+    public static final double kFieldLockMaxAngularSpeedRadiansPerSecond = 1.5;
+    public static final double kFieldLockMaxAngularAccelerationRadiansPerSecondSquared = 4.0;
+    public static final double kVisionLockMaxAgeSeconds = 0.35;
 
     public static final Matrix<N3, N1> kStateStdDevs = VecBuilder.fill(0.1, 0.1, Math.toRadians(2));
     public static final Matrix<N3, N1> kVisionStdDevs = VecBuilder.fill(1.2, 1.2, Math.toRadians(45));
@@ -253,6 +262,7 @@ public final class Constants {
   public static final class ShooterConstant {
     
     public static final double kMainFlywheelBeltRatio = 24/36; //Sensor To Mechanism Ratio
+    public static final double kShooterFacingOffsetDegrees = 180.0;
     public static final double kMainFlywheelkV = 0.1;
     public static final double kMainFlywheelkS = 0.2;
     public static final double kMainFlywheelkP = 0.8;

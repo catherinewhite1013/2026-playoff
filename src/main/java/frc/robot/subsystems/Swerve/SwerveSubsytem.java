@@ -22,6 +22,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -320,6 +321,29 @@ public class SwerveSubsytem extends SubsystemBase {
   public Pose2d getPose() {
     // return odometer.getPoseMeters();
     return estPose2d;
+  }
+
+  public Pose2d getLatestVisionPose() {
+    return latestVisionPose;
+  }
+
+  public double getVisionAgeSeconds() {
+    if (lastVisionTimestamp <= 0.0) {
+      return -1.0;
+    }
+    return Math.max(0.0, Timer.getFPGATimestamp() - lastVisionTimestamp);
+  }
+
+  public boolean hasFreshVisionPose(double maxAgeSeconds) {
+    double visionAgeSeconds = getVisionAgeSeconds();
+    return hasSeededPoseWithVision
+        && lastVisionTagCount > 0.0
+        && visionAgeSeconds >= 0.0
+        && visionAgeSeconds <= maxAgeSeconds;
+  }
+
+  public boolean hasFieldPose() {
+    return hasSeededPoseWithVision;
   }
 
   // Reset odometer to new Pose2d location
