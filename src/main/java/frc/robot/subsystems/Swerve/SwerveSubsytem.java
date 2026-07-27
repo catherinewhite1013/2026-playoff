@@ -42,6 +42,7 @@ public class SwerveSubsytem extends SubsystemBase {
       IDConstants.kFrontLeftDriveAbsoluteEncoderPort,
       DriveConstants.kFrontLeftDriveMotorReversed,
       DriveConstants.kFrontLeftTurningMotorReversed,
+      DriveConstants.kFrontLeftTurningEncoderReversed,
       "Front Left");
 
   private final SwerveModule frontRight = new SwerveModuleMK4i(
@@ -50,6 +51,7 @@ public class SwerveSubsytem extends SubsystemBase {
       IDConstants.kFrontRightDriveAbsoluteEncoderPort,
       DriveConstants.kFrontRightDriveMotorReversed,
       DriveConstants.kFrontRightTurningMotorReversed,
+      DriveConstants.kFrontRightTurningEncoderReversed,
       "Front Right");
 
   private final SwerveModule backLeft = new SwerveModuleMK4i(
@@ -58,6 +60,7 @@ public class SwerveSubsytem extends SubsystemBase {
       IDConstants.kBackLeftDriveAbsoluteEncoderPort,
       DriveConstants.kBackLeftDriveMotorReversed,
       DriveConstants.kBackLeftTurningMotorReversed,
+      DriveConstants.kBackLeftTurningEncoderReversed,
       "Back Left");
 
   private final SwerveModule backRight = new SwerveModuleMK4i(
@@ -66,6 +69,7 @@ public class SwerveSubsytem extends SubsystemBase {
       IDConstants.kBackRightDriveAbsoluteEncoderPort,
       DriveConstants.kBackRightDriveMotorReversed,
       DriveConstants.kBackRightTurningMotorReversed,
+      DriveConstants.kBackRightTurningEncoderReversed,
       "Back Right");
 
   private final static AHRS gyro = new AHRS(NavXComType.kMXP_SPI);

@@ -58,14 +58,14 @@ public final class Constants {
     // Swerve Turning Motor Port
     public static final int kFrontLeftTurnPort = 5;
     public static final int kFrontRightTurnPort = 6;
-    public static final int kBackLeftTurnPort = 7;// 5
-    public static final int kBackRightTurnPort = 8;// 6
+    public static final int kBackLeftTurnPort = 8;// 5
+    public static final int kBackRightTurnPort = 7;// 6
 
     // Swerve Absolute Encoder Port
     public static final int kFrontLeftDriveAbsoluteEncoderPort = 1;
     public static final int kFrontRightDriveAbsoluteEncoderPort = 2;
-    public static final int kBackLeftDriveAbsoluteEncoderPort = 4;
-    public static final int kBackRightDriveAbsoluteEncoderPort = 3;
+    public static final int kBackLeftDriveAbsoluteEncoderPort = 3;
+    public static final int kBackRightDriveAbsoluteEncoderPort = 4;
 
     // Intake
     public static final int kRollerPort = 11;
@@ -118,13 +118,18 @@ public final class Constants {
 
     public static final boolean kFrontLeftDriveMotorReversed = false;
     public static final boolean kFrontRightDriveMotorReversed = false;
-    public static final boolean kBackLeftDriveMotorReversed = true;
-    public static final boolean kBackRightDriveMotorReversed = true;
+    public static final boolean kBackLeftDriveMotorReversed = false;
+    public static final boolean kBackRightDriveMotorReversed = false;
 
     public static final boolean kFrontLeftTurningMotorReversed = true;
     public static final boolean kFrontRightTurningMotorReversed = true;
     public static final boolean kBackLeftTurningMotorReversed = false;
     public static final boolean kBackRightTurningMotorReversed = false;
+
+    public static final boolean kFrontLeftTurningEncoderReversed = false;
+    public static final boolean kFrontRightTurningEncoderReversed = false;
+    public static final boolean kBackLeftTurningEncoderReversed = true;
+    public static final boolean kBackRightTurningEncoderReversed = true;
 
     public static final double kPhysicalMaxSpeedMetersPerSecond = 5.0;
     public static final double kPhysicalMaxAngularSpeedRadiansPerSecond = 2 * Math.PI;

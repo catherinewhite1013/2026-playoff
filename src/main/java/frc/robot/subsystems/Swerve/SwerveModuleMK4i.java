@@ -44,6 +44,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   private CANcoder absoluteEncoder;
 
   private String moduleName;
+  private double turningEncoderDirection;
 
   // Special UI variables for swerve simulation
   private MechanismLigament2d simTurnCmd;
@@ -59,8 +60,10 @@ public class SwerveModuleMK4i implements SwerveModule {
       int absoluteEncoderId,
       boolean DriveMotorReversed,
       boolean TurningMotorReversed,
+      boolean TurningEncoderReversed,
       String name) {
     moduleName = name;
+    turningEncoderDirection = TurningEncoderReversed ? -1.0 : 1.0;
 
     // Create absolute encoder
     absoluteEncoder = new CANcoder(absoluteEncoderId);
@@ -131,6 +134,8 @@ public class SwerveModuleMK4i implements SwerveModule {
 
   public void printInfo() {
     SmartDashboard.putNumber(moduleName + "  speed", getDriveVelocity());
+    SmartDashboard.putNumber(moduleName + " abs angle deg", Math.toDegrees(getAbsoluteEncoderRad()));
+    SmartDashboard.putNumber(moduleName + " turn angle deg", Math.toDegrees(getTurningPosition()));
   }
 
   public double getDrivePosition() {
@@ -138,7 +143,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   }
 
   public double getTurningPosition() {
-    return turningEncoder.getPosition();
+    return turningEncoder.getPosition() * turningEncoderDirection;
   }
 
   public double getDriveVelocity() {
@@ -146,7 +151,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   }
 
   public double getTurningVelocity() {
-    return turningEncoder.getVelocity();
+    return turningEncoder.getVelocity() * turningEncoderDirection;
   }
 
   public SwerveModulePosition getPosition() {
@@ -166,7 +171,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   // Set turning encoder to match absolute encoder value with gear offsets applied
   public void resetEncoders() {
     driveEncoder.setPosition(0);
-    turningEncoder.setPosition(getAbsoluteEncoderRad());
+    turningEncoder.setPosition(getAbsoluteEncoderRad() / turningEncoderDirection);
   }
 
   // Get swerve module current state, aka velocity and wheel rotation
@@ -181,22 +186,30 @@ public class SwerveModuleMK4i implements SwerveModule {
       stop();
       return;
     }
+    SmartDashboard.putNumber(moduleName + " requested angle deg", state.angle.getDegrees());
+    SmartDashboard.putNumber(moduleName + " requested speed", state.speedMetersPerSecond);
+
     // Optimize swerve module state to do fastest rotation movement, aka never
     // rotate more than 90*
     state = SwerveModuleState.optimize(state, getState().angle);
+    SmartDashboard.putNumber(moduleName + " optimized angle deg", state.angle.getDegrees());
+    SmartDashboard.putNumber(moduleName + " optimized speed", state.speedMetersPerSecond);
 
     // Scale velocity down using robot max speed
     driveMotor.set(
         state.speedMetersPerSecond / DriveConstants.kPhysicalMaxSpeedMetersPerSecond * DriveConstants.kMotorMaxOutput);
 
     // Use PID to calculate angle setpoint
-    builtinTurningPidController.setSetpoint(state.angle.getRadians(), ControlType.kPosition, ClosedLoopSlot.kSlot0);
+    builtinTurningPidController.setSetpoint(
+        state.angle.getRadians() / turningEncoderDirection,
+        ControlType.kPosition,
+        ClosedLoopSlot.kSlot0);
 
     simTurnCmd.setAngle(state.angle); // .plus(Rotation2d.fromDegrees(90))
     simDirectionCmd.setAngle(state.speedMetersPerSecond > 0 ? 0 : 180);
     simDirectionCmd.setLength(Math.abs(state.speedMetersPerSecond / DriveConstants.kPhysicalMaxSpeedMetersPerSecond));
 
-    simTurnReal.setAngle(getAbsoluteEncoderRad() * 360); // +90
+    simTurnReal.setAngle(Rotation2d.fromRadians(getTurningPosition()));
     simDirectionReal
         .setAngle(getDriveVelocity() > 0 ? 0 : 180);
     simDirectionReal.setLength(Math.abs(getDriveVelocity() / DriveConstants.kPhysicalMaxSpeedMetersPerSecond));
