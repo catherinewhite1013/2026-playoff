@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -108,7 +109,7 @@ public class RobotContainer {
     m_driverController.start().whileTrue(new InstantCommand(() -> swerveSubsytem.zeroHeading()));
 
     //operator
-    m_driverController.leftBumper().whileTrue(  //aiming
+    m_driverController.rightTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem, 0),
         new AutoShoot(shooterSubsystem, swerveSubsytem)));
@@ -117,17 +118,19 @@ public class RobotContainer {
       new SwerveAiming(swerveSubsytem, 1),
       new AutoPass(shooterSubsystem, swerveSubsytem)));
 
-    m_operatorController.rightBumper().whileTrue(new ParallelCommandGroup(
+    m_operatorController.rightBumper().whileTrue(new SequentialCommandGroup(
       new StorageCommand(storageSubsystem, StorageAction.kIn),
       new WaitCommand(1),
       new IntakeRetract(intakeSubsystem)
       ));
 
+    m_operatorController.leftBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));
+
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
     m_operatorController.pov(180).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kIn));
-    m_driverController.y().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
-    m_driverController.a().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
-    m_driverController.b().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
+    m_driverController.leftTrigger().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+    m_driverController.leftBumper().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
+    m_driverController.y().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
     m_operatorController.x().whileTrue(new FlywheelTuning(shooterSubsystem));
 
 
@@ -143,19 +146,19 @@ public class RobotContainer {
 
   private void configureNamedCommands() {
 
-    NamedCommands.registerCommand("AutoShootCommand",
-      new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem, 0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem),
-        new WaitUntilCommand(()-> shooterSubsystem.isReady()),
-        new StorageCommand(storageSubsystem, StorageAction.kIn),
-        new WaitCommand(1),
-        new IntakeRetract(intakeSubsystem)));
+    // NamedCommands.registerCommand("AutoShootCommand",
+    //   new ParallelCommandGroup(
+    //     new SwerveAiming(swerveSubsytem, 0),
+    //     new AutoShoot(shooterSubsystem, swerveSubsytem),
+    //     new WaitUntilCommand(()-> shooterSubsystem.isReady()),
+    //     new StorageCommand(storageSubsystem, StorageAction.kIn),
+    //     new WaitCommand(1),
+    //     new IntakeRetract(intakeSubsystem)));
 
-    NamedCommands.registerCommand("IntakeGetBall", 
-      new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
-
+    // NamedCommands.registerCommand("IntakeGetBall", 
+    //   new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
     
+    // NamedCommands.registerCommand("PassBall", getAutonomousCommand());
   }
 
   /**
