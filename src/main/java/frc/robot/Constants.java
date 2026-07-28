@@ -194,6 +194,8 @@ public final class Constants {
     
     public static final double kExtendMaxOutput = 0.7;
     public static final double kExtendMinOutput = -0.7;
+    public static final double kExtendCurrentTripAmps = 60.0;
+    public static final double kExtendCurrentTripSeconds = 1.0;
 
     public static final double kRollerStartMinPos = 40.0;
 

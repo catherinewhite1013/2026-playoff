@@ -18,6 +18,7 @@ public class IntakeAuto extends InstantCommand{
 
     @Override
     public void initialize(){
+        intakeSubsystem.clearExtendCurrentFault();
         switch (extendState) {
             case kExtend:
                 intakeSubsystem.setExtendAuto(ExtendState.kExtend);

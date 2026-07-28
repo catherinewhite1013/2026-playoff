@@ -14,6 +14,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IDConstants;
 import frc.robot.Constants.IntakeConstants.ExtendManual;
@@ -33,6 +35,9 @@ public class IntakeSubsystem extends SubsystemBase{
 
     private final RelativeEncoder extendEncoder = extendMotor.getEncoder();
     private final SparkClosedLoopController extendPIDcontroller = extendMotor.getClosedLoopController();
+
+    private boolean extendCurrentFault = false;
+    private double extendOverCurrentStartSeconds = -1.0;
 
     public IntakeSubsystem() {
         
@@ -73,11 +78,25 @@ public class IntakeSubsystem extends SubsystemBase{
     }
 
     public void setExtendManual(ExtendManual speed){
+        if (extendCurrentFault) {
+            extendMotor.stopMotor();
+            return;
+        }
         extendMotor.set(speed.rate);
     }
 
     public void setExtendAuto(ExtendState state){
+        if (extendCurrentFault) {
+            extendMotor.stopMotor();
+            return;
+        }
         extendPIDcontroller.setSetpoint(state.position, ControlType.kPosition);
+    }
+
+    public void clearExtendCurrentFault(){
+        extendMotor.stopMotor();
+        extendCurrentFault = false;
+        extendOverCurrentStartSeconds = -1.0;
     }
 
     public void stopextendMotor(){
@@ -91,6 +110,30 @@ public class IntakeSubsystem extends SubsystemBase{
 
     @Override
     public void periodic(){
+        double extendCurrentAmps = extendMotor.getOutputCurrent();
+
+        if (!extendCurrentFault && extendCurrentAmps >= kExtendCurrentTripAmps) {
+            if (extendOverCurrentStartSeconds < 0.0) {
+                extendOverCurrentStartSeconds = Timer.getFPGATimestamp();
+            } else if (Timer.getFPGATimestamp() - extendOverCurrentStartSeconds
+                    >= kExtendCurrentTripSeconds) {
+                extendCurrentFault = true;
+                extendMotor.stopMotor();
+                DriverStation.reportWarning(
+                    "Intake extend motor stopped: over current "
+                        + String.format("%.1f A", extendCurrentAmps),
+                    false);
+            }
+        } else if (extendCurrentAmps < kExtendCurrentTripAmps) {
+            extendOverCurrentStartSeconds = -1.0;
+        }
+
+        if (extendCurrentFault) {
+            extendMotor.stopMotor();
+        }
+
         SmartDashboard.putNumber("Intake / ExtendRelativePos", getExtendPosition());
+        SmartDashboard.putNumber("Intake / ExtendCurrentAmps", extendCurrentAmps);
+        SmartDashboard.putBoolean("Intake / ExtendCurrentFault", extendCurrentFault);
     }
 }

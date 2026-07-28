@@ -15,6 +15,7 @@ public class IntakeExtendManual extends Command{
 
   @Override
   public void initialize() {
+    intakeSubsystem.clearExtendCurrentFault();
     intakeSubsystem.setExtendManual(extendManual);
   }
 

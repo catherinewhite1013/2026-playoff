@@ -22,7 +22,7 @@ public class IntakeRetract extends Command{
 
     @Override
     public void initialize() {
-
+        intakeSubsystem.clearExtendCurrentFault();
     }
 
     @Override
@@ -50,5 +50,4 @@ public class IntakeRetract extends Command{
     }
     
 }
-
 
