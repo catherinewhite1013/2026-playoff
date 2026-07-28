@@ -47,7 +47,7 @@ public class SwerveAiming extends Command {
     public void execute() {
         double rotationSpeed = 0;
 
-        currentRobotAngle = swerveSubsytem.getPose().getRotation().getDegrees()-180;
+        currentRobotAngle = swerveSubsytem.getPose().getRotation().getDegrees();
 
         switch (shootMode) {
             case 0: // Shoot
