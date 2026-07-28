@@ -111,11 +111,11 @@ public class RobotContainer {
     //operator
     m_driverController.rightTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem, 0),
+        new SwerveAiming(swerveSubsytem,shooterSubsystem, 0),
         new AutoShoot(shooterSubsystem, swerveSubsytem)));
 
     m_driverController.rightBumper().whileTrue(new ParallelCommandGroup(
-      new SwerveAiming(swerveSubsytem, 1),
+      new SwerveAiming(swerveSubsytem,shooterSubsystem, 1),
       new AutoPass(shooterSubsystem, swerveSubsytem)));
 
     m_operatorController.rightBumper().whileTrue(new IntakeRetract(intakeSubsystem,storageSubsystem));

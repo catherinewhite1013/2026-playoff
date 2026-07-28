@@ -148,10 +148,11 @@ public final class Constants {
 
     public static final double kMotorMaxOutput = 1;
 
-    public static final double kPLockHeading = 0.05;
-    public static final double kILockHeading = 0.0;
+    public static final double kPLockHeading = 0.04;
+    public static final double kILockHeading = 0.3;
+    public static final double kIzLockHeading = 10;
     public static final double kDLockHeading = 0.0;
-    public static final double kAimingErrTolerence = 2.0;
+    public static final double kAimingErrTolerence = 5.0;
 
     public static final double kPFieldLockTranslation = 1.0;
     public static final double kIFieldLockTranslation = 0.0;
@@ -191,8 +192,8 @@ public final class Constants {
     public static final double kI = 0;
     public static final double kD = 0;
     
-    public static final double kExtendMaxOutput = 0.5;
-    public static final double kExtendMinOutput = -0.5;
+    public static final double kExtendMaxOutput = 0.7;
+    public static final double kExtendMinOutput = -0.7;
 
     public static final double kRollerStartMinPos = 40.0;
 
@@ -235,9 +236,9 @@ public final class Constants {
   public static final class StorageConstant {
     
     public enum StorageAction{
-      kIn(0.5),
+      kIn(0.7),
       kStop(0.0),
-      kOut(-0.5);
+      kOut(-0.7);
 
       public final double state;
 
@@ -247,9 +248,9 @@ public final class Constants {
     }
 
     public enum ShooterFeedAction{
-      kIn(0.5),
+      kIn(0.7),
       kStop(0.0),
-      kOut(-0.5);
+      kOut(-0.7);
 
       public final double state;
 
@@ -265,20 +266,20 @@ public final class Constants {
     public static final double kShooterFacingOffsetDegrees = 180.0;
     public static final double kMainFlywheelkV = 0.1;
     public static final double kMainFlywheelkS = 0.2;
-    public static final double kMainFlywheelkP = 0.8;
+    public static final double kMainFlywheelkP = 0.5;
 
     public static final double kSecondaryFlywheelKP = 0.0003;
     public static final double kSecondaryFlywheelKI = 0.0;
-    public static final double kSecondaryFlywheelKD = 0.2;
-    public static final double kSecondaryFlywheelKV = 0.002;
-    public static final double kSecondaryFlywheelKS = 0.2;
+    public static final double kSecondaryFlywheelKD = 0.02;
+    public static final double kSecondaryFlywheelKV = 0.0032;
+    public static final double kSecondaryFlywheelKS = 0.25;
 
     public static final Translation2d kRobotToShooter = new Translation2d(0.0, 0.0);
 
     public static final double[][] kShooterDataMap = {
-      {1.0, 0.0, 0.0},
-      {2.0, 0.0, 0.0},
-      {2.5, 0.0, 0.0}
+      {1.6, 2700.0, 1500.0},
+      {2.0, 2800.0, 1500.0},
+      {2.5, 3100.0, 1500.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 200;
