@@ -98,6 +98,7 @@ public class SwerveSubsytem extends SubsystemBase {
   private double lastVisionTagCount = 0.0;
   private boolean lastVisionWasAccepted = false;
   private double gyroFieldOffsetDegrees = 0.0;
+  private boolean isRedAlliance = false;
 
   /* Creates a new SwerveSubsytem. */
   public SwerveSubsytem() {
@@ -163,6 +164,7 @@ public class SwerveSubsytem extends SubsystemBase {
 
           var alliance = DriverStation.getAlliance();
           if (alliance.isPresent()) {
+            isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
             return alliance.get() == DriverStation.Alliance.Red;
           }
           return false;
