@@ -152,7 +152,7 @@ public class SwerveSubsytem extends SubsystemBase {
         this::getPose, // Robot pose supplier
         this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
         this::getSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        this::setChassisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
+        this::setPathPlannerChassisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
                                 // optionally outputs individual module feedforwards
         AutoConstants.pathFollowerConfig,
         config, // The robot configuration
@@ -164,8 +164,8 @@ public class SwerveSubsytem extends SubsystemBase {
 
           var alliance = DriverStation.getAlliance();
           if (alliance.isPresent()) {
-            isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
-            return isRedAlliance;
+            // isRedAlliance = alliance.get() == DriverStation.Alliance.Red;
+            return alliance.get() == DriverStation.Alliance.Red;
           }
           return false;
         },
@@ -250,6 +250,15 @@ public class SwerveSubsytem extends SubsystemBase {
 
     // Set the module state
     setModuleStates(moduleStates);
+  }
+
+  private void setPathPlannerChassisSpeeds(ChassisSpeeds chassisSpeeds) {
+    // This drivetrain's command frame is rotated 180 degrees from WPILib's
+    // robot frame, where +X must point toward the intake.
+    setChassisSpeeds(new ChassisSpeeds(
+        -chassisSpeeds.vxMetersPerSecond,
+        -chassisSpeeds.vyMetersPerSecond,
+        chassisSpeeds.omegaRadiansPerSecond));
   }
 
   public void setChassisOutput(double xSpeed, double ySpeed, double turningAngle) {
