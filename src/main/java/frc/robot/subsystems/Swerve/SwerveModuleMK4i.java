@@ -139,7 +139,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   }
 
   public double getDrivePosition() {
-    return driveEncoder.getPosition();
+    return -driveEncoder.getPosition(); //TODO:
   }
 
   public double getTurningPosition() {

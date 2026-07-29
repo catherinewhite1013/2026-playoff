@@ -47,7 +47,7 @@ public class SwerveAiming extends Command {
     public void execute() {
         double rotationSpeed = 0;
 
-        currentRobotAngle = swerveSubsytem.getPose().getRotation().getDegrees();
+        currentRobotAngle = swerveSubsytem.getPose().getRotation().getDegrees() - 180;
 
         switch (shootMode) {
             case 0: // Shoot
@@ -57,13 +57,14 @@ public class SwerveAiming extends Command {
 
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
                 swerveSubsytem.setChassisOutput(0, 0, -rotationSpeed);
-                System.out.println(rotationSpeed);
+                //System.out.println(rotationSpeed);
                 
                 break;
 
             case 1: // Pass 
                 targetAngle = 180.0;
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
+                swerveSubsytem.setChassisOutput(0, 0, -rotationSpeed);
                 break;
 
             default:

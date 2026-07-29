@@ -142,19 +142,17 @@ public class RobotContainer {
 
   private void configureNamedCommands() {
 
-    // NamedCommands.registerCommand("AutoShootCommand",
-    //   new ParallelCommandGroup(
-    //     new SwerveAiming(swerveSubsytem, 0),
-    //     new AutoShoot(shooterSubsystem, swerveSubsytem),
-    //     new WaitUntilCommand(()-> shooterSubsystem.isReady()),
-    //     new StorageCommand(storageSubsystem, StorageAction.kIn),
-    //     new WaitCommand(1),
-    //     new IntakeRetract(intakeSubsystem)));
+    NamedCommands.registerCommand("AutoShootCommand",
+      new ParallelCommandGroup(
+        new SwerveAiming(swerveSubsytem,shooterSubsystem,0),
+        new AutoShoot(shooterSubsystem, swerveSubsytem),
+        new WaitUntilCommand(()-> shooterSubsystem.isReady()),
+        new IntakeRetract(intakeSubsystem,storageSubsystem)));
 
-    // NamedCommands.registerCommand("IntakeGetBall", 
-    //   new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+    NamedCommands.registerCommand("IntakeGetBall", 
+      new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
     
-    // NamedCommands.registerCommand("PassBall", getAutonomousCommand());
+    //NamedCommands.registerCommand("PassBall", getAutonomousCommand());
   }
 
   /**

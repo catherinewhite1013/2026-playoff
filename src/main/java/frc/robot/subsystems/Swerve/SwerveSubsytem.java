@@ -212,9 +212,10 @@ public class SwerveSubsytem extends SubsystemBase {
   }
 
   // Returns an angle from 0 to 360 that is continuous, meaning it loops
-  private double getRawRobotAngle() {
+  private double getRawRobotAngle() { //FIXME:
     return (-gyro.getAngle() % 360 + 360) % 360;
   }
+  
 
   public double getRobotAngle() {
     return (getRawRobotAngle() + gyroFieldOffsetDegrees + 360) % 360;
@@ -383,19 +384,21 @@ public class SwerveSubsytem extends SubsystemBase {
   }
   
 
-  private LimelightHelpers.PoseEstimate getBestLimelightPoseEstimate() {
+  private LimelightHelpers.PoseEstimate getBestLimelightPoseEstimate() { 
     LimelightHelpers.PoseEstimate mt1 =
         LimelightHelpers.getBotPoseEstimate_wpiBlue(LimelightConstants.kLimelightName);
     if (!hasSeededPoseWithVision && isValidVisionEstimate(mt1)) {
+      //System.out.println("mt1");
       return mt1;
     }
 
     LimelightHelpers.PoseEstimate mt2 =
         LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightConstants.kLimelightName);
     if (isValidVisionEstimate(mt2)) {
+      //System.out.println("mt2");
       return mt2;
     }
-
+    //System.out.println("mt1 (both not valid)");
     return mt1;
   }
 
@@ -429,13 +432,13 @@ public class SwerveSubsytem extends SubsystemBase {
 
     if (!hasSeededPoseWithVision) {
       gyroFieldOffsetDegrees =
-          latestVisionPose.getRotation().getDegrees() - getRawRobotAngle();
+          latestVisionPose.getRotation().getDegrees() - getRawRobotAngle(); 
       poseEstimator.resetPosition(getRobotRotation(), getModulePositions(), latestVisionPose);
       hasSeededPoseWithVision = true;
       return;
     }
 
-    poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.35, 0.35, 9999999));
+    poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));  //FIXME:
     poseEstimator.addVisionMeasurement(latestVisionPose, estimate.timestampSeconds);
   }
 
@@ -447,7 +450,7 @@ public class SwerveSubsytem extends SubsystemBase {
     encoderPose2d = encoderOdometry.update(getRobotRotation(), getModulePositions());
 
 
-    LimelightHelpers.SetRobotOrientation_NoFlush(
+    LimelightHelpers.SetRobotOrientation(
         LimelightConstants.kLimelightName, 
         getRobotRotation().getDegrees(),
         0, 0, 0, 0, 0);
