@@ -30,6 +30,8 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 
 public class SwerveModuleMK4i implements SwerveModule {
+  private static final double DRIVE_ENCODER_DIRECTION = -1.0;
+
   private SparkMax driveMotor;
   private SparkMax turningMotor;
 
@@ -139,7 +141,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   }
 
   public double getDrivePosition() {
-    return -driveEncoder.getPosition(); //TODO:
+    return driveEncoder.getPosition() * DRIVE_ENCODER_DIRECTION;
   }
 
   public double getTurningPosition() {
@@ -147,7 +149,7 @@ public class SwerveModuleMK4i implements SwerveModule {
   }
 
   public double getDriveVelocity() {
-    return driveEncoder.getVelocity();
+    return driveEncoder.getVelocity() * DRIVE_ENCODER_DIRECTION;
   }
 
   public double getTurningVelocity() {
