@@ -12,7 +12,7 @@
         "y": 0.7070841337771435
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "right get ball start"
     },
     {
       "anchor": {
@@ -75,7 +75,7 @@
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "right",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

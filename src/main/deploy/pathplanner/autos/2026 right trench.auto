@@ -27,6 +27,36 @@
           "data": {
             "name": "AutoShootCommand"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right back to trench"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "IntakeGetBall"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right get"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right trench shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AutoShootCommand"
+          }
         }
       ]
     }
