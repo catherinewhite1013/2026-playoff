@@ -34,6 +34,9 @@ public class StatusSubsystem extends SubsystemBase {
   }
 
   public void updateAutoShoot(boolean ready, double progress) {
+    if (ready && !shooterReady) {
+      animationTick = 0;
+    }
     shooterReady = ready;
     chargeProgress = ready ? 1.0 : Math.max(0.0, Math.min(1.0, progress));
   }
@@ -67,13 +70,10 @@ public class StatusSubsystem extends SubsystemBase {
   }
 
   private void renderAutoShoot() {
-    boolean strobeOn =
-        (animationTick / StatusConstants.kStrobeHalfPeriodTicks) % 2 == 0;
-    int red = shooterReady ? 0 : StatusConstants.kShootBrightness;
-    int green = shooterReady ? StatusConstants.kShootBrightness : 0;
-
-    for (int i = 0; i < StatusConstants.kAimLedCount; i++) {
-      buffer.setRGB(i, strobeOn ? red : 0, strobeOn ? green : 0, 0);
+    if (shooterReady) {
+      renderReadyChargeStrobe();
+    } else {
+      renderFrontChargeSegments();
     }
 
     int chargeStart = StatusConstants.kAimLedCount;
@@ -91,6 +91,89 @@ public class StatusSubsystem extends SubsystemBase {
     if (!shooterReady && chargedCount > 0) {
       int chargeHead = chargeStart + chargedCount - 1;
       buffer.setRGB(chargeHead, 255, 48, 0);
+    }
+  }
+
+  private void renderReadyChargeStrobe() {
+    int mainStart = 0;
+    int forwardStart = mainStart + StatusConstants.kMainChargeLedCount;
+    int reverseStart = forwardStart + StatusConstants.kForwardChargeLedCount;
+    int chargeStep =
+        ((animationTick / StatusConstants.kReadyChargeStepTicks) + 1)
+            % (StatusConstants.kForwardChargeLedCount + 1);
+
+    renderChargeSegment(
+        mainStart,
+        StatusConstants.kMainChargeLedCount,
+        false,
+        StatusConstants.kMainChargeLedCount,
+        0,
+        StatusConstants.kShootBrightness,
+        0);
+    renderChargeSegment(
+        forwardStart,
+        StatusConstants.kForwardChargeLedCount,
+        false,
+        chargeStep,
+        StatusConstants.kShootBrightness,
+        0,
+        0);
+    renderChargeSegment(
+        reverseStart,
+        StatusConstants.kReverseChargeLedCount,
+        true,
+        chargeStep,
+        StatusConstants.kShootBrightness,
+        0,
+        0);
+  }
+
+  private void renderFrontChargeSegments() {
+    int mainStart = 0;
+    int forwardStart = mainStart + StatusConstants.kMainChargeLedCount;
+    int reverseStart = forwardStart + StatusConstants.kForwardChargeLedCount;
+
+    renderChargeSegment(
+        mainStart,
+        StatusConstants.kMainChargeLedCount,
+        false,
+        (int) Math.round(chargeProgress * StatusConstants.kMainChargeLedCount),
+        0,
+        StatusConstants.kShootBrightness,
+        0);
+    renderChargeSegment(
+        forwardStart,
+        StatusConstants.kForwardChargeLedCount,
+        false,
+        (int) Math.round(chargeProgress * StatusConstants.kForwardChargeLedCount),
+        0,
+        StatusConstants.kShootBrightness,
+        0);
+    renderChargeSegment(
+        reverseStart,
+        StatusConstants.kReverseChargeLedCount,
+        true,
+        (int) Math.round(chargeProgress * StatusConstants.kReverseChargeLedCount),
+        0,
+        StatusConstants.kShootBrightness,
+        0);
+  }
+
+  private void renderChargeSegment(
+      int start,
+      int length,
+      boolean reversed,
+      int chargedCount,
+      int red,
+      int green,
+      int blue) {
+    for (int i = 0; i < length; i++) {
+      boolean isCharged = reversed ? i >= length - chargedCount : i < chargedCount;
+      buffer.setRGB(
+          start + i,
+          isCharged ? red : 0,
+          isCharged ? green : 0,
+          isCharged ? blue : 0);
     }
   }
 }
