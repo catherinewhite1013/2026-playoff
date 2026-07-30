@@ -258,7 +258,7 @@ public class SwerveSubsytem extends SubsystemBase {
     setChassisSpeeds(new ChassisSpeeds(
         -chassisSpeeds.vxMetersPerSecond,
         -chassisSpeeds.vyMetersPerSecond,
-        chassisSpeeds.omegaRadiansPerSecond));
+        -chassisSpeeds.omegaRadiansPerSecond));
   }
 
   public void setChassisOutput(double xSpeed, double ySpeed, double turningAngle) {

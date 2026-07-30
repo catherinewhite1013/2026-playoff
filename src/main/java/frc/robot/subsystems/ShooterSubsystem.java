@@ -28,8 +28,9 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.IDConstants;
+import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.subsystems.Health.CheckableSpark;
 import frc.robot.subsystems.Health.CheckableTalonFX;
 import frc.robot.subsystems.Health.HardwareHealth;
@@ -221,13 +222,11 @@ public class ShooterSubsystem extends SubsystemBase{
 
         double distanceToHub = targetVector.getNorm();
 
-        Rotation2d angleToHub = targetVector.getAngle().minus(robotPose.getRotation());
+        
 
         SmartDashboard.putNumber("Shooter/Calc Dist to Hub", distanceToHub);
-        SmartDashboard.putNumber("Shooter/Calc Target Rotate Deg", angleToHub.getDegrees());
         SmartDashboard.putNumber("Shooter/Calc TargetRPM", mainFlywheelSpeed.get(distanceToHub));
         SmartDashboard.putNumber("Shooter/Calc TargetAngle", secFlywheelSpeed.get(distanceToHub));
-        SmartDashboard.putNumber("Shooter/Calc Delta Angle To hub", angleToHub.getDegrees()-robotPose.getRotation().getDegrees());
     }
 
     public void FlywheelTuning(){
@@ -247,10 +246,11 @@ public class ShooterSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Shooter/MAin Target RPM", targetMainRPM);
         SmartDashboard.putNumber("Shooter/Sec Actual RPM", getSecFlywheelSpeed());
         SmartDashboard.putNumber("Shooter/Sec Target RPM", targetSecRPM);
+        SmartDashboard.putBoolean("Shooter/isReady", isReady());
 
         
 
-        SmartDashboard.putBoolean("Shooter/IsReady", isReady());
+        //SmartDashboard.putBoolean("Shooter/IsReady", isReady());
     }
 
 }

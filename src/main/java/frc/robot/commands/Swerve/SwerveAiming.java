@@ -19,7 +19,7 @@ public class SwerveAiming extends Command {
     private double currentRobotAngle = 0;
     private double targetAngle = 0;
 
-    private final PIDController pidController = new PIDController(
+    private static final PIDController pidController = new PIDController(
         DriveConstants.kPLockHeading,
         DriveConstants.kILockHeading,
         DriveConstants.kDLockHeading
@@ -36,6 +36,12 @@ public class SwerveAiming extends Command {
         pidController.setIZone(DriveConstants.kIzLockHeading);
         
         addRequirements(swerveSubsytem);
+
+        
+    }
+
+    public static boolean aimIsReady(){
+        return pidController.getError() < DriveConstants.kAimingErrTolerence;
     }
 
     @Override
@@ -48,6 +54,8 @@ public class SwerveAiming extends Command {
         double rotationSpeed = 0;
 
         currentRobotAngle = swerveSubsytem.getPose().getRotation().getDegrees() - 180;
+
+        
 
         switch (shootMode) {
             case 0: // Shoot
@@ -77,6 +85,7 @@ public class SwerveAiming extends Command {
         SmartDashboard.putNumber("DeltaAngle", pidController.getError());
         SmartDashboard.putNumber("shoot Mode", shootMode);
         SmartDashboard.putBoolean("atSetpoint", pidController.atSetpoint());
+        SmartDashboard.putBoolean("aimReady", aimIsReady());
     }
 
     @Override

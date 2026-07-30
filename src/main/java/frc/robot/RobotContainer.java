@@ -146,8 +146,10 @@ public class RobotContainer {
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem,shooterSubsystem,0),
         new AutoShoot(shooterSubsystem, swerveSubsytem),
-        new WaitUntilCommand(()-> shooterSubsystem.isReady()),
-        new IntakeRetract(intakeSubsystem,storageSubsystem)));
+        new SequentialCommandGroup(
+          new WaitUntilCommand(()-> shooterSubsystem.isReady() && SwerveAiming.aimIsReady()),
+          new IntakeRetract(intakeSubsystem,storageSubsystem))));        
+        
 
     NamedCommands.registerCommand("IntakeGetBall", 
       new IntakeAuto(intakeSubsystem, ExtendState.kExtend));

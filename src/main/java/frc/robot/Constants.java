@@ -104,10 +104,10 @@ public final class Constants {
   public static class DriveConstants {
 
     // Distance between right and left wheels
-    public static final double kTrackWidth = 0.66 - 0.12;
+    public static final double kTrackWidth = 0.72 - 0.12;
 
     // Distance between front and back wheels
-    public static final double kWheelBase = 0.72 - 0.12;
+    public static final double kWheelBase = 0.66 - 0.12;
 
     // Need to update to correct values, I dont remember the value we set last meet
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
@@ -148,7 +148,7 @@ public final class Constants {
 
     public static final double kMotorMaxOutput = 1;
 
-    public static final double kPLockHeading = 0.04;
+    public static final double kPLockHeading = 0.06;
     public static final double kILockHeading = 0.3;
     public static final double kIzLockHeading = 10;
     public static final double kDLockHeading = 0.0;
@@ -285,8 +285,8 @@ public final class Constants {
       {3.0, 2900.0, 1950.0}
     };
 
-    public static final double kMainFlywheelErrTolerence = 200;
-    public static final double kSecondaryFlywheelErrTolerence = 200;
+    public static final double kMainFlywheelErrTolerence = 300;
+    public static final double kSecondaryFlywheelErrTolerence = 300;
 
     public static final Translation2d kBlueHubLocation = new Translation2d(
         Units.inchesToMeters(181.56),

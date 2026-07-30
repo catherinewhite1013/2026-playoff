@@ -1,7 +1,5 @@
 package frc.robot.commands.Intake;
 
-import static frc.robot.Constants.IntakeConstants.kRollerStartMinPos;
-
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Constants.IntakeConstants.ExtendState;
 import frc.robot.Constants.IntakeConstants.RollerAction;
