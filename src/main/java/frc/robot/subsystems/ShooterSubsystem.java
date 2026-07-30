@@ -20,6 +20,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -185,6 +186,16 @@ public class ShooterSubsystem extends SubsystemBase{
         boolean secSpeedReady = Math.abs(getSecFlywheelSpeed() - targetSecRPM) < kSecondaryFlywheelErrTolerence;
 
         return mainSpeedReady && secSpeedReady;
+    }
+
+    public double getChargeProgress(){
+        if (targetMainRPM <= 0 || targetSecRPM <= 0) {
+            return 0.0;
+        }
+
+        double mainProgress = Math.abs(getMainFlywheelSpeed()) / targetMainRPM;
+        double secProgress = Math.abs(getSecFlywheelSpeed()) / targetSecRPM;
+        return MathUtil.clamp(Math.min(mainProgress, secProgress), 0.0, 1.0);
     }
 
     //ball passing
