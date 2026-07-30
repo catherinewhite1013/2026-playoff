@@ -262,6 +262,18 @@ public final class Constants {
     }
   }
 
+  public static final class StatusConstants {
+    public static final int kPwmPort = 1;
+    public static final int kAimLedCount = 27;
+    public static final int kChargeLedCount = 41;
+    public static final int kTotalLedCount = kAimLedCount + kChargeLedCount;
+
+    public static final int kRainbowStep = 3;
+    public static final int kNormalBrightness = 32;
+    public static final int kShootBrightness = 96;
+    public static final int kStrobeHalfPeriodTicks = 5;
+  }
+
   public static final class ShooterConstant {
     
     public static final double kMainFlywheelBeltRatio = 24/36; //Sensor To Mechanism Ratio

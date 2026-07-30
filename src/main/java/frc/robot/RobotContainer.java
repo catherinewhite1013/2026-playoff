@@ -22,7 +22,7 @@ import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.StatusSubsystem;
 import frc.robot.subsystems.StorageSubsystem;
 import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
@@ -57,6 +57,7 @@ public class RobotContainer {
   private final StorageSubsystem storageSubsystem = new StorageSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  private final StatusSubsystem statusSubsystem = new StatusSubsystem();
   
 
   private static CommandXboxController m_driverController = new CommandXboxController(
@@ -112,7 +113,7 @@ public class RobotContainer {
     m_driverController.rightTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem,shooterSubsystem, 0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem)));
+        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem)));
 
     m_driverController.rightBumper().whileTrue(new ParallelCommandGroup(
       new SwerveAiming(swerveSubsytem,shooterSubsystem, 1),
@@ -145,7 +146,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("AutoShootCommand",
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem,shooterSubsystem,0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem),
+        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem),
         new SequentialCommandGroup(
           new WaitUntilCommand(()-> shooterSubsystem.isReady() && SwerveAiming.aimIsReady()),
           new IntakeRetract(intakeSubsystem,storageSubsystem))));        
