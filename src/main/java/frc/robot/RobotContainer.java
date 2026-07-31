@@ -231,5 +231,11 @@ public class RobotContainer {
         isHubActive = true;
       }
     }
+
+    SmartDashboard.putNumber("GameTimer/Match Time", matchTime);
+    SmartDashboard.putString("GameTimer/Shift Label", shiftLabel);
+    SmartDashboard.putNumber("GameTimer/Shiht CD", cdToNextShift);
+    SmartDashboard.putBoolean("GameTimer/Hub Active", isHubActive);
+    
   }
 }
