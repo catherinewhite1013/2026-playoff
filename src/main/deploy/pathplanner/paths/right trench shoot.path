@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.864202076223496,
-        "y": 1.3660340798572275
+        "x": 7.841235170717592,
+        "y": 2.3537301070601857
       },
       "isLocked": false,
       "linkedName": "right get ball end"
     },
     {
       "anchor": {
-        "x": 5.785777460770328,
+        "x": 6.937974971064815,
         "y": 0.6147000000000002
       },
       "prevControl": {
-        "x": 6.9249458803454305,
-        "y": 0.6030617129310377
+        "x": 8.20268359375,
+        "y": 0.647331380208334
       },
       "nextControl": {
-        "x": 4.558934362158897,
-        "y": 0.6272340133424181
+        "x": 5.71147603033843,
+        "y": 0.5830544869212744
       },
       "isLocked": false,
       "linkedName": null
@@ -70,7 +70,21 @@
       "rotationDegrees": 0.0
     }
   ],
-  "constraintZones": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.0005061254152823689,
+      "maxWaypointRelativePos": 1.1596111918604648,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 2.5,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
