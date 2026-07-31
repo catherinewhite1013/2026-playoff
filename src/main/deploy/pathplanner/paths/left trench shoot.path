@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 7.804208273894435,
-        "y": 4.714279600570615
+        "y": 3.2522111269614835
       },
       "prevControl": null,
       "nextControl": {
         "x": 8.11031600984793,
-        "y": 5.679199392431323
+        "y": 4.217130918822191
       },
       "isLocked": false,
       "linkedName": "get ball end"
@@ -89,7 +89,7 @@
   "folder": "left",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 91.50743575877497
   },
   "useDefaultConstraints": false
 }

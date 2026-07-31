@@ -56,13 +56,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right get ball"
+            "pathName": "Right get hub"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "right trench shoot"
+            "pathName": "right trench hub shoot "
           }
         },
         {
