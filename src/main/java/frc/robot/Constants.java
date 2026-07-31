@@ -275,6 +275,7 @@ public final class Constants {
     public static final int kRainbowStep = 3;
     public static final int kNormalBrightness = 32;
     public static final int kShootBrightness = 96;
+    public static final int kReadyStrobeHalfPeriodTicks = 5;
     public static final int kReadyChargeStepTicks = 5;
   }
 

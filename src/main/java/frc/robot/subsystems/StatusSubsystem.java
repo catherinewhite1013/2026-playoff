@@ -101,14 +101,16 @@ public class StatusSubsystem extends SubsystemBase {
     int chargeStep =
         ((animationTick / StatusConstants.kReadyChargeStepTicks) + 1)
             % (StatusConstants.kForwardChargeLedCount + 1);
+    boolean mainStrobeOn =
+        (animationTick / StatusConstants.kReadyStrobeHalfPeriodTicks) % 2 == 0;
 
     renderChargeSegment(
         mainStart,
         StatusConstants.kMainChargeLedCount,
         false,
-        StatusConstants.kMainChargeLedCount,
-        0,
+        mainStrobeOn ? StatusConstants.kMainChargeLedCount : 0,
         StatusConstants.kShootBrightness,
+        0,
         0);
     renderChargeSegment(
         forwardStart,
