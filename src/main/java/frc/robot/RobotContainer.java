@@ -27,9 +27,13 @@ import frc.robot.subsystems.StatusSubsystem;
 import frc.robot.subsystems.StorageSubsystem;
 import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
+import java.util.Optional;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -91,6 +95,7 @@ public class RobotContainer {
 
     configureBindings();
     setDefaultCommand();
+    updateMatchTimer();
   }
 
   /**
@@ -181,5 +186,50 @@ public class RobotContainer {
   public void logAutonomousCommand(Command autonomousCommand) {
     telemetry.logAutonomousCommand(
         autonomousCommand == null ? "None" : autonomousCommand.getName());
+  }
+
+  public void updateMatchTimer() {
+    double matchTime = DriverStation.getMatchTime();
+    String gameData = DriverStation.getGameSpecificMessage();
+    Optional<Alliance> alliance = DriverStation.getAlliance();
+
+    boolean isHubActive = true;
+    double cdToNextShift = 0;
+    String shiftLabel = "AUTO";
+
+    if (alliance.isPresent() && DriverStation.isTeleopEnabled() && !gameData.isEmpty()) {
+      boolean redInActiveFirst = gameData.charAt(0) == 'R';
+      boolean isRed = alliance.get() == Alliance.Red;
+      boolean shift1First = isRed ? !redInActiveFirst : redInActiveFirst;
+
+      if (matchTime > 130) { // ALL
+        cdToNextShift = matchTime - 130;
+        isHubActive = true;
+        shiftLabel = "TRANSITION";
+      } else if (matchTime > 105) { // S1
+        cdToNextShift = matchTime - 105;
+        isHubActive = shift1First;
+        shiftLabel = "SHIFT 1";
+      } else if (matchTime > 80) { // S2
+        cdToNextShift = matchTime - 80;
+        isHubActive = !shift1First;
+        shiftLabel = "SHIFT 2";
+      } else if (matchTime > 55) { // S3
+        cdToNextShift = matchTime - 55;
+        isHubActive = shift1First;
+        shiftLabel = "SHIFT 3";
+      } else if (matchTime > 30) { // S4
+        cdToNextShift = matchTime - 30;
+        isHubActive = !shift1First;
+        shiftLabel = "SHIFT 4";
+      } else if (matchTime > 0) { // -30
+        cdToNextShift = matchTime;
+        isHubActive = true;
+        shiftLabel = "END GAME";
+      } else {
+        cdToNextShift = 0;
+        isHubActive = true;
+      }
+    }
   }
 }
