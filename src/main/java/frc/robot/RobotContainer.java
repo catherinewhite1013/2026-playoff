@@ -20,6 +20,7 @@ import frc.robot.commands.Shooter.AutoPass;
 import frc.robot.commands.Shooter.AutoShoot;
 import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
+import frc.robot.logging.RobotTelemetry;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.StatusSubsystem;
@@ -58,6 +59,7 @@ public class RobotContainer {
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final StatusSubsystem statusSubsystem = new StatusSubsystem();
+  private final RobotTelemetry telemetry;
   
 
   private static CommandXboxController m_driverController = new CommandXboxController(
@@ -80,6 +82,10 @@ public class RobotContainer {
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
     SmartDashboard.putData("Auto Mode", autoChooser);
 
+    telemetry = new RobotTelemetry(
+        swerveSubsytem,
+        m_driverController.getHID(),
+        m_operatorController.getHID());
    
     // stateSubsystem.setLEDState(StatusSubsystem.LEDState.RAINBOW);
 
@@ -166,5 +172,14 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     return autoChooser.getSelected();
+  }
+
+  public void logTelemetry() {
+    telemetry.log();
+  }
+
+  public void logAutonomousCommand(Command autonomousCommand) {
+    telemetry.logAutonomousCommand(
+        autonomousCommand == null ? "None" : autonomousCommand.getName());
   }
 }

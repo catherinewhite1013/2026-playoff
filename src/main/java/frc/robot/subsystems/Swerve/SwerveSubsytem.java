@@ -93,10 +93,15 @@ public class SwerveSubsytem extends SubsystemBase {
   private Pose2d estPose2d = new Pose2d();
   private Pose2d encoderPose2d = new Pose2d();
   private Pose2d latestVisionPose = new Pose2d();
+  private Pose2d latestRawVisionPose = new Pose2d();
   private boolean hasSeededPoseWithVision = false;
   private double lastVisionTimestamp = -1.0;
   private double lastVisionTagCount = 0.0;
+  private double lastRawVisionTimestamp = -1.0;
+  private double lastRawVisionTagCount = 0.0;
   private boolean lastVisionWasAccepted = false;
+  private boolean lastVisionHadTarget = false;
+  private boolean lastVisionEstimateWasValid = false;
   private double gyroFieldOffsetDegrees = 0.0;
   private boolean isRedAlliance = false;
 
@@ -339,6 +344,55 @@ public class SwerveSubsytem extends SubsystemBase {
     return latestVisionPose;
   }
 
+  public Pose2d getLatestRawVisionPose() {
+    return latestRawVisionPose;
+  }
+
+  public Pose2d getEncoderPose() {
+    return encoderPose2d;
+  }
+
+  public boolean wasVisionAccepted() {
+    return lastVisionWasAccepted;
+  }
+
+  public boolean hasVisionSeededPose() {
+    return hasSeededPoseWithVision;
+  }
+
+  public double getVisionTagCount() {
+    return lastVisionTagCount;
+  }
+
+  public double getLastVisionTimestampSeconds() {
+    return lastVisionTimestamp;
+  }
+
+  public double getLastRawVisionTimestampSeconds() {
+    return lastRawVisionTimestamp;
+  }
+
+  public double getLastRawVisionTagCount() {
+    return lastRawVisionTagCount;
+  }
+
+  public boolean didVisionHaveTarget() {
+    return lastVisionHadTarget;
+  }
+
+  public boolean wasVisionEstimateValid() {
+    return lastVisionEstimateWasValid;
+  }
+
+  public double[] getModuleAbsoluteAnglesRad() {
+    return new double[] {
+        frontLeft.getAbsoluteEncoderRad(),
+        frontRight.getAbsoluteEncoderRad(),
+        backLeft.getAbsoluteEncoderRad(),
+        backRight.getAbsoluteEncoderRad()
+    };
+  }
+
   public double getVisionAgeSeconds() {
     if (lastVisionTimestamp <= 0.0) {
       return -1.0;
@@ -468,8 +522,18 @@ public class SwerveSubsytem extends SubsystemBase {
 
     lastVisionWasAccepted = false;
     LimelightHelpers.PoseEstimate visionEstimate = getBestLimelightPoseEstimate();
-    if (LimelightHelpers.getTV(LimelightConstants.kLimelightName)
-        && isValidVisionEstimate(visionEstimate)) {
+    lastVisionHadTarget = LimelightHelpers.getTV(LimelightConstants.kLimelightName);
+    lastVisionEstimateWasValid = isValidVisionEstimate(visionEstimate);
+
+    if (visionEstimate != null) {
+      lastRawVisionTimestamp = visionEstimate.timestampSeconds;
+      lastRawVisionTagCount = visionEstimate.tagCount;
+      if (visionEstimate.pose != null) {
+        latestRawVisionPose = visionEstimate.pose;
+      }
+    }
+
+    if (lastVisionHadTarget && lastVisionEstimateWasValid) {
       addVisionMeasurement(visionEstimate);
       lastVisionWasAccepted = true;
     }
