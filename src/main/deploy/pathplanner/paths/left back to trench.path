@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.9263338088445074,
-        "y": 2.2171184022824537
+        "x": 3.046977777777778,
+        "y": 6.032611111111111
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.9105555555555553,
-        "y": 1.8522444444444432
+        "x": 3.068659058487874,
+        "y": 7.056176890156919
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "left trench shoot end"
     },
     {
       "anchor": {
-        "x": 4.0,
-        "y": 0.6644793152639101
+        "x": 4.039058487874465,
+        "y": 7.366704707560627
       },
       "prevControl": {
-        "x": 2.5511126961483592,
-        "y": 0.5480313837375181
+        "x": 2.9522111269614832,
+        "y": 7.35376604850214
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "right get ball start"
+      "linkedName": "left get ball start"
     }
   ],
   "rotationTargets": [],
@@ -45,10 +45,10 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": "right",
+  "folder": "left",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -1.2188752351312577
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

@@ -13,13 +13,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right get ball"
+            "pathName": "Left get"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "right trench shoot"
+            "pathName": "left trench shoot"
           }
         },
         {
@@ -42,6 +42,12 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "left back to trench"
+          }
+        },
+        {
           "type": "named",
           "data": {
             "name": "IntakeGetBall"
@@ -50,13 +56,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right get hub"
+            "pathName": "Left get"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "right trench hub shoot "
+            "pathName": "left trench shoot"
           }
         },
         {

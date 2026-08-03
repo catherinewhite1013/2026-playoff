@@ -296,10 +296,10 @@ public final class Constants {
     public static final Translation2d kRobotToShooter = new Translation2d(0.0, 0.0);
 
     public static final double[][] kShooterDataMap = {
-      {1.6, 2700.0, 1500.0},
-      {2.0, 2500.0, 1500.0},// 2 , 2550, 1500
-      {2.5, 2900.0, 1500.0},//2.5, 2900, 1500,
-      {3.0, 2900.0, 1950.0}
+      {1.6, 2600.0, 1500.0},
+      {2.0, 2400.0, 1500.0},// 2 , 2550, 1500
+      {2.5, 2800.0, 1500.0},//2.5, 2900, 1500,
+      {3.0, 2800.0, 1850.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 300;

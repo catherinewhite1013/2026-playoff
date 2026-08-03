@@ -73,7 +73,7 @@ public class SwerveSubsytem extends SubsystemBase {
       DriveConstants.kBackRightTurningEncoderReversed,
       "Back Right");
 
-  private final static AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
+  private final static AHRS gyro = new AHRS(NavXComType.kUSB1);
 
   public Field2d field = new Field2d();
 
