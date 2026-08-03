@@ -21,6 +21,12 @@ import frc.robot.commands.Shooter.AutoShoot;
 import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
 import frc.robot.logging.RobotTelemetry;
+import frc.robot.match.HubShiftCalculator;
+import frc.robot.match.HubShiftCalculator.AllianceColor;
+import frc.robot.match.HubShiftCalculator.Input;
+import frc.robot.match.HubShiftCalculator.MatchMode;
+import frc.robot.match.HubShiftCalculator.Result;
+import frc.robot.match.HubShiftCalculator.TestOverride;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.StatusSubsystem;
@@ -74,6 +80,7 @@ public class RobotContainer {
 
   // Create auto chooser
   private final SendableChooser<Command> autoChooser;
+  private final SendableChooser<TestOverride> hubTestOverrideChooser = new SendableChooser<>();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -86,6 +93,11 @@ public class RobotContainer {
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
     SmartDashboard.putData("Auto Mode", autoChooser);
 
+    hubTestOverrideChooser.setDefaultOption("Disabled", TestOverride.DISABLED);
+    hubTestOverrideChooser.addOption("Red won AUTO", TestOverride.RED);
+    hubTestOverrideChooser.addOption("Blue won AUTO", TestOverride.BLUE);
+    SmartDashboard.putData("GameTimer/Practice Override", hubTestOverrideChooser);
+
     telemetry = new RobotTelemetry(
         swerveSubsytem,
         m_driverController.getHID(),
@@ -95,7 +107,6 @@ public class RobotContainer {
 
     configureBindings();
     setDefaultCommand();
-    updateMatchTimer();
   }
 
   /**
@@ -189,53 +200,51 @@ public class RobotContainer {
   }
 
   public void updateMatchTimer() {
-    double matchTime = DriverStation.getMatchTime();
-    String gameData = DriverStation.getGameSpecificMessage();
-    Optional<Alliance> alliance = DriverStation.getAlliance();
+    TestOverride selectedOverride = Optional.ofNullable(hubTestOverrideChooser.getSelected())
+        .orElse(TestOverride.DISABLED);
+    Result result = HubShiftCalculator.calculate(new Input(
+        DriverStation.getMatchTime(),
+        getMatchMode(),
+        DriverStation.getAlliance()
+            .map(alliance -> alliance == Alliance.Red ? AllianceColor.RED : AllianceColor.BLUE)
+            .orElse(AllianceColor.UNKNOWN),
+        DriverStation.getGameSpecificMessage(),
+        DriverStation.isFMSAttached(),
+        selectedOverride));
 
-    boolean isHubActive = true;
-    double cdToNextShift = 0;
-    String shiftLabel = "AUTO";
+    SmartDashboard.putNumber("GameTimer/Match Time", result.displayMatchTimeSeconds());
+    SmartDashboard.putString("GameTimer/Shift Label", result.phase().label());
+    SmartDashboard.putNumber("GameTimer/Shift CD", result.secondsToNextChange());
+    // Deprecated typo retained temporarily for existing Elastic dashboard layouts.
+    SmartDashboard.putNumber("GameTimer/Shiht CD", result.secondsToNextChange());
+    SmartDashboard.putBoolean("GameTimer/Hub Active", result.hubActive());
+    SmartDashboard.putBoolean("GameTimer/Hub Status Known", result.hubStatusKnown());
+    SmartDashboard.putString(
+        "GameTimer/Hub Status",
+        result.hubStatusKnown() ? (result.hubActive() ? "Active" : "Inactive") : "Unknown");
+    SmartDashboard.putString("GameTimer/Data Source", result.dataSource().label());
+    SmartDashboard.putString("GameTimer/Game Data", result.effectiveGameData());
+    SmartDashboard.putString("GameTimer/Raw Game Data", result.rawGameData());
+    SmartDashboard.putBoolean(
+        "GameTimer/Test Override Enabled", result.testOverrideEnabled());
+    SmartDashboard.putBoolean(
+        "GameTimer/Test Override Applied", result.testOverrideApplied());
+    SmartDashboard.putString("GameTimer/Test Override Selection", selectedOverride.displayName());
+  }
 
-    if (alliance.isPresent() && DriverStation.isTeleopEnabled() && !gameData.isEmpty()) {
-      boolean redInActiveFirst = gameData.charAt(0) == 'R';
-      boolean isRed = alliance.get() == Alliance.Red;
-      boolean shift1First = isRed ? !redInActiveFirst : redInActiveFirst;
-
-      if (matchTime > 130) { // ALL
-        cdToNextShift = matchTime - 130;
-        isHubActive = true;
-        shiftLabel = "TRANSITION";
-      } else if (matchTime > 105) { // S1
-        cdToNextShift = matchTime - 105;
-        isHubActive = shift1First;
-        shiftLabel = "SHIFT 1";
-      } else if (matchTime > 80) { // S2
-        cdToNextShift = matchTime - 80;
-        isHubActive = !shift1First;
-        shiftLabel = "SHIFT 2";
-      } else if (matchTime > 55) { // S3
-        cdToNextShift = matchTime - 55;
-        isHubActive = shift1First;
-        shiftLabel = "SHIFT 3";
-      } else if (matchTime > 30) { // S4
-        cdToNextShift = matchTime - 30;
-        isHubActive = !shift1First;
-        shiftLabel = "SHIFT 4";
-      } else if (matchTime > 0) { // -30
-        cdToNextShift = matchTime;
-        isHubActive = true;
-        shiftLabel = "END GAME";
-      } else {
-        cdToNextShift = 0;
-        isHubActive = true;
-      }
+  private static MatchMode getMatchMode() {
+    if (DriverStation.isDisabled()) {
+      return MatchMode.DISABLED;
     }
-
-    SmartDashboard.putNumber("GameTimer/Match Time", matchTime);
-    SmartDashboard.putString("GameTimer/Shift Label", shiftLabel);
-    SmartDashboard.putNumber("GameTimer/Shiht CD", cdToNextShift);
-    SmartDashboard.putBoolean("GameTimer/Hub Active", isHubActive);
-    
+    if (DriverStation.isAutonomousEnabled()) {
+      return MatchMode.AUTONOMOUS;
+    }
+    if (DriverStation.isTeleopEnabled()) {
+      return MatchMode.TELEOP;
+    }
+    if (DriverStation.isTestEnabled()) {
+      return MatchMode.TEST;
+    }
+    return MatchMode.UNKNOWN;
   }
 }
