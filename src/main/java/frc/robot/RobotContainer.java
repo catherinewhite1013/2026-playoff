@@ -132,7 +132,7 @@ public class RobotContainer {
     m_driverController.start().whileTrue(new InstantCommand(() -> swerveSubsytem.zeroHeading()));
 
     //operator
-    m_driverController.rightTrigger().whileTrue(  //aiming
+    m_operatorController.leftTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem,shooterSubsystem, 0),
         new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem)));
@@ -141,7 +141,7 @@ public class RobotContainer {
       new SwerveAiming(swerveSubsytem,shooterSubsystem, 1),
       new AutoPass(shooterSubsystem, swerveSubsytem)));
 
-    m_operatorController.rightBumper().whileTrue(new IntakeRetract(intakeSubsystem,storageSubsystem));
+    m_operatorController.rightTrigger().whileTrue(new IntakeRetract(intakeSubsystem,storageSubsystem));
 
     m_operatorController.leftBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));
 
