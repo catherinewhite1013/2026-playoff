@@ -10,14 +10,17 @@ public class AutoShoot extends Command{
     private final ShooterSubsystem shooterSubsystem;
     private final SwerveSubsytem swerveSubsytem;
     private final StatusSubsystem statusSubsystem;
+    private final boolean intakeAlive;
 
     public AutoShoot(
-        ShooterSubsystem shooterSubsystem,
-        SwerveSubsytem swerveSubsytem,
-        StatusSubsystem statusSubsystem){
+      ShooterSubsystem shooterSubsystem,
+      SwerveSubsytem swerveSubsytem,
+      StatusSubsystem statusSubsystem,
+      boolean intakeAlive){
         this.shooterSubsystem = shooterSubsystem;
         this.swerveSubsytem = swerveSubsytem;
         this.statusSubsystem = statusSubsystem;
+        this.intakeAlive = intakeAlive;
 
         addRequirements(shooterSubsystem, statusSubsystem);
     }
@@ -29,7 +32,7 @@ public class AutoShoot extends Command{
 
     @Override
     public void execute() {
-      shooterSubsystem.autoShoot(swerveSubsytem);
+      shooterSubsystem.autoShoot(swerveSubsytem, intakeAlive);
       statusSubsystem.updateAutoShoot(
           shooterSubsystem.isReady(),
           shooterSubsystem.getChargeProgress());

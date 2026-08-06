@@ -148,11 +148,13 @@ public final class Constants {
 
     public static final double kMotorMaxOutput = 1;
 
+//------------------------AIMING-------------------------------- TODO:
     public static final double kPLockHeading = 0.06;
     public static final double kILockHeading = 0.3;
     public static final double kIzLockHeading = 10;
     public static final double kDLockHeading = 0.0;
     public static final double kAimingErrTolerence = 5.0;
+//--------------------------------------------------------------
 
     public static final double kPFieldLockTranslation = 1.0;
     public static final double kIFieldLockTranslation = 0.0;
@@ -264,7 +266,7 @@ public final class Constants {
 
   public static final class StatusConstants {
     public static final int kPwmPort = 1;
-    public static final int kMainChargeLedCount = 19;
+    public static final int kMainChargeLedCount = 18;
     public static final int kForwardChargeLedCount = 4;
     public static final int kReverseChargeLedCount = 4;
     public static final int kAimLedCount =
@@ -295,11 +297,19 @@ public final class Constants {
 
     public static final Translation2d kRobotToShooter = new Translation2d(0.0, 0.0);
 
+    //TODO:
     public static final double[][] kShooterDataMap = {
       {1.6, 2600.0, 1500.0},
-      {2.0, 2400.0, 1500.0},// 2 , 2550, 1500
+      {2.0, 2600.0, 1500.0},// 2 , 2550, 1500
       {2.5, 2800.0, 1500.0},//2.5, 2900, 1500,
       {3.0, 2800.0, 1850.0}
+    };
+
+    public static final double[][] kShooterDataMapNoIntake = {
+      {1.6, 3000.0, 1600.0},
+      {2.0, 3000.0, 1700.0},// 2 , 2550, 1500
+      {2.5, 3300.0, 1700.0},//2.5, 2900, 1500,
+      {3.0, 3300.0, 2000.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 300;
@@ -312,8 +322,8 @@ public final class Constants {
         Units.inchesToMeters(468.56),
         Units.inchesToMeters(158.32)); // Welded:Units.inchesToMeters(469.11), Units.inchesToMeters(158.84)
     
-    public static final double kRedPassLocation = Units.inchesToMeters(100);
-    public static final double kBluePassLocation = Units.inchesToMeters(40);
+    public static final double kRedPassLocation = Units.inchesToMeters(650);
+    public static final double kBluePassLocation = Units.inchesToMeters(0);
 
   }
 

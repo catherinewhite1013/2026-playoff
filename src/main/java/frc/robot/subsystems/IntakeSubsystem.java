@@ -110,30 +110,30 @@ public class IntakeSubsystem extends SubsystemBase{
 
     @Override
     public void periodic(){
-        // double extendCurrentAmps = extendMotor.getOutputCurrent();
+        double extendCurrentAmps = extendMotor.getOutputCurrent();
 
-        // if (!extendCurrentFault && extendCurrentAmps >= kExtendCurrentTripAmps) {
-        //     if (extendOverCurrentStartSeconds < 0.0) {
-        //         extendOverCurrentStartSeconds = Timer.getFPGATimestamp();
-        //     } else if (Timer.getFPGATimestamp() - extendOverCurrentStartSeconds
-        //             >= kExtendCurrentTripSeconds) {
-        //         extendCurrentFault = true;
-        //         extendMotor.stopMotor();
-        //         DriverStation.reportWarning(
-        //             "Intake extend motor stopped: over current "
-        //                 + String.format("%.1f A", extendCurrentAmps),
-        //             false);
-        //     }
-        // } else if (extendCurrentAmps < kExtendCurrentTripAmps) {
-        //     extendOverCurrentStartSeconds = -1.0;
-        // }
+        if (!extendCurrentFault && extendCurrentAmps >= kExtendCurrentTripAmps) {
+            if (extendOverCurrentStartSeconds < 0.0) {
+                extendOverCurrentStartSeconds = Timer.getFPGATimestamp();
+            } else if (Timer.getFPGATimestamp() - extendOverCurrentStartSeconds
+                    >= kExtendCurrentTripSeconds) {
+                extendCurrentFault = true;
+                extendMotor.stopMotor();
+                DriverStation.reportWarning(
+                    "Intake extend motor stopped: over current "
+                        + String.format("%.1f A", extendCurrentAmps),
+                    false);
+            }
+        } else if (extendCurrentAmps < kExtendCurrentTripAmps) {
+            extendOverCurrentStartSeconds = -1.0;
+        }
 
-        // if (extendCurrentFault) {
-        //     extendMotor.stopMotor();
-        // }
+        if (extendCurrentFault) {
+            extendMotor.stopMotor();
+        }
 
         SmartDashboard.putNumber("Intake / ExtendRelativePos", getExtendPosition());
-        // SmartDashboard.putNumber("Intake / ExtendCurrentAmps", extendCurrentAmps);
-        // SmartDashboard.putBoolean("Intake / ExtendCurrentFault", extendCurrentFault);
+        SmartDashboard.putNumber("Intake / ExtendCurrentAmps", extendCurrentAmps);
+        SmartDashboard.putBoolean("Intake / ExtendCurrentFault", extendCurrentFault);
     }
 }

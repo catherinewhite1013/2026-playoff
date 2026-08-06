@@ -219,7 +219,7 @@ public class SwerveSubsytem extends SubsystemBase {
   }
 
   // Returns an angle from 0 to 360 that is continuous, meaning it loops
-  private double getRawRobotAngle() { //FIXME:
+  private double getRawRobotAngle() { 
     return (-gyro.getAngle() % 360 + 360) % 360;
   }
   
@@ -503,7 +503,7 @@ public class SwerveSubsytem extends SubsystemBase {
       return;
     }
 
-    poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));  //FIXME:
+    poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));  //TODO:
     poseEstimator.addVisionMeasurement(latestVisionPose, estimate.timestampSeconds);
   }
 

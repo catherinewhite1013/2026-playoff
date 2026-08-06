@@ -15,7 +15,6 @@ import frc.robot.commands.Intake.IntakeExtendManual;
 import frc.robot.commands.Intake.IntakeRetract;
 import frc.robot.commands.Intake.IntakeRollerManual;
 import frc.robot.commands.Shooter.FlywheelTuning;
-import frc.robot.commands.Shooter.ManualShoot;
 import frc.robot.commands.Shooter.AutoPass;
 import frc.robot.commands.Shooter.AutoShoot;
 import frc.robot.commands.Swerve.SwerveAiming;
@@ -40,14 +39,12 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -130,26 +127,32 @@ public class RobotContainer {
   private void configureBindings() {
     //drive
     m_driverController.start().whileTrue(new InstantCommand(() -> swerveSubsytem.zeroHeading()));
+    
+    m_driverController.rightTrigger().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+    m_driverController.leftTrigger().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
+    m_driverController.y().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
 
     //operator
     m_operatorController.leftTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem,shooterSubsystem, 0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem)));
+        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem,true)));
+    m_operatorController.b().whileTrue(
+      new ParallelCommandGroup(
+        new SwerveAiming(swerveSubsytem, shooterSubsystem, 0),
+        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem, false)
+      ));
 
-    m_driverController.rightBumper().whileTrue(new ParallelCommandGroup(
+    m_operatorController.leftBumper().whileTrue(new ParallelCommandGroup(
       new SwerveAiming(swerveSubsytem,shooterSubsystem, 1),
       new AutoPass(shooterSubsystem, swerveSubsytem)));
 
     m_operatorController.rightTrigger().whileTrue(new IntakeRetract(intakeSubsystem,storageSubsystem));
-
-    m_operatorController.leftBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));
+    m_operatorController.rightBumper().whileTrue(new StorageCommand(storageSubsystem, StorageAction.kIn));
 
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
     m_operatorController.pov(180).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kIn));
-    m_driverController.leftTrigger().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
-    m_driverController.leftBumper().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
-    m_driverController.y().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
+    
     m_operatorController.x().whileTrue(new FlywheelTuning(shooterSubsystem));
     m_operatorController.y().whileTrue(new InstantCommand(()-> shooterSubsystem.calcShooterToHub(swerveSubsytem.getPose())));
 
@@ -168,7 +171,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("AutoShootCommand",
       new ParallelCommandGroup(
         new SwerveAiming(swerveSubsytem,shooterSubsystem,0),
-        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem),
+        new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem,true),
         new SequentialCommandGroup(
           new WaitUntilCommand(()-> shooterSubsystem.isReady() && SwerveAiming.aimIsReady()),
           new IntakeRetract(intakeSubsystem,storageSubsystem))));        

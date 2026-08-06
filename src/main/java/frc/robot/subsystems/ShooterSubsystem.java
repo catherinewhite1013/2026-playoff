@@ -29,9 +29,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.IDConstants;
-import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.subsystems.Health.CheckableSpark;
 import frc.robot.subsystems.Health.CheckableTalonFX;
 import frc.robot.subsystems.Health.HardwareHealth;
@@ -53,8 +51,11 @@ public class ShooterSubsystem extends SubsystemBase{
     TalonFXConfiguration mainFlywheelConfiguration = new TalonFXConfiguration();
 
     //Tree map
-    private final InterpolatingDoubleTreeMap mainFlywheelSpeed = new InterpolatingDoubleTreeMap();
-    private final InterpolatingDoubleTreeMap secFlywheelSpeed = new InterpolatingDoubleTreeMap();
+    private final InterpolatingDoubleTreeMap mainFlywheelSpeedMap = new InterpolatingDoubleTreeMap();
+    private final InterpolatingDoubleTreeMap secFlywheelSpeedMap = new InterpolatingDoubleTreeMap();
+
+    private final InterpolatingDoubleTreeMap mainSpeedMapNoIntake = new InterpolatingDoubleTreeMap();
+    private final InterpolatingDoubleTreeMap secSpeedMapNoIntake = new InterpolatingDoubleTreeMap();
 
     private double targetMainRPM = 0;
     private double targetSecRPM = 0;
@@ -105,18 +106,26 @@ public class ShooterSubsystem extends SubsystemBase{
         secondaryFlywheelMotor.configure(secondaryFlywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         setupInterpolationTable();
+        setupInterpolationTableNoIntake();
 
         HardwareHealth.getInstance().register(new CheckableSpark(secondaryFlywheelMotor, "Shooter/sec Flywheel"));
         HardwareHealth.getInstance().register(new CheckableTalonFX(mainFlywheelMotor, "Shooter/main flywheel"));
 
-        SmartDashboard.putNumber("Tuning/Main Flywheel RPM", 0);
-        SmartDashboard.putNumber("Tuning/Sec Flywheel RPM", 0);
+        SmartDashboard.putNumber("Tuning/Main Flywheel RPM", 2600);
+        SmartDashboard.putNumber("Tuning/Sec Flywheel RPM", 1500);
     }
 
     private void setupInterpolationTable(){
         for (double[] data : kShooterDataMap){
-            mainFlywheelSpeed.put(data[0], data[1]);
-            secFlywheelSpeed.put(data[0], data[2]);
+            mainFlywheelSpeedMap.put(data[0], data[1]);
+            secFlywheelSpeedMap.put(data[0], data[2]);
+        }
+    }
+
+    private void setupInterpolationTableNoIntake(){
+        for (double[] data : kShooterDataMapNoIntake){
+            mainSpeedMapNoIntake.put(data[0], data[1]);
+            secSpeedMapNoIntake.put(data[0], data[2]);
         }
     }
 
@@ -140,22 +149,34 @@ public class ShooterSubsystem extends SubsystemBase{
 
     //Aim & shoot
     public void autoAim(double distance){
-        targetMainRPM = mainFlywheelSpeed.get(distance);    //調表格資料
-        targetSecRPM = secFlywheelSpeed.get(distance);
+        targetMainRPM = mainFlywheelSpeedMap.get(distance);    //調表格資料
+        targetSecRPM = secFlywheelSpeedMap.get(distance);
 
-        applySetSpeed();    //轉
+        this.applySetSpeed();    //轉
     }
 
-    public void autoShoot(SwerveSubsytem swerveSubsytem){
+    public void autoAimNoIntake(double distance){
+        targetMainRPM = mainSpeedMapNoIntake.get(distance);    //調表格資料
+        targetSecRPM = secSpeedMapNoIntake.get(distance);
+
+        this.applySetSpeed();    //轉
+    }
+
+    public void autoShoot(SwerveSubsytem swerveSubsytem, boolean intakeAlive){
         Translation2d ShooterFieldPosition = swerveSubsytem.getPose().getTranslation()
             .plus(kRobotToShooter.rotateBy(swerveSubsytem.getPose().getRotation()));    //Shooter 場地位置
 
         Translation2d currentHubPosition = getTargetHubLocation();
 
         double distanceToHub = ShooterFieldPosition.getDistance(currentHubPosition);
-        this.autoAim(distanceToHub);
+        
+        if (intakeAlive){
+            this.autoAim(distanceToHub);
+        }   else{
+            this.autoAimNoIntake(distanceToHub);
+        }
     }
-
+    
     public void applySetSpeed(){
         secFlywheelClosedLoopCtrl.setSetpoint(targetSecRPM, ControlType.kVelocity);
 
@@ -203,10 +224,10 @@ public class ShooterSubsystem extends SubsystemBase{
         var allience = DriverStation.getAlliance();
         
         if (allience.isPresent() && allience.get() == DriverStation.Alliance.Red) {
-            double distanceToRedPass = swerveSubsytem.getPose().getTranslation().getX() - kRedPassLocation;
+            double distanceToRedPass = Math.abs(swerveSubsytem.getPose().getTranslation().getX() - kRedPassLocation);
             this.autoAim(distanceToRedPass);
         } else {
-            double distanceToBluePass = swerveSubsytem.getPose().getTranslation().getX() - kBluePassLocation;
+            double distanceToBluePass = Math.abs(swerveSubsytem.getPose().getTranslation().getX() - kBluePassLocation);
             this.autoAim(distanceToBluePass);
         }
     }
@@ -236,13 +257,13 @@ public class ShooterSubsystem extends SubsystemBase{
         
 
         SmartDashboard.putNumber("Shooter/Calc Dist to Hub", distanceToHub);
-        SmartDashboard.putNumber("Shooter/Calc TargetRPM", mainFlywheelSpeed.get(distanceToHub));
-        SmartDashboard.putNumber("Shooter/Calc TargetAngle", secFlywheelSpeed.get(distanceToHub));
+        SmartDashboard.putNumber("Shooter/Calc TargetRPM", mainFlywheelSpeedMap.get(distanceToHub));
+        SmartDashboard.putNumber("Shooter/Calc TargetAngle", secFlywheelSpeedMap.get(distanceToHub));
     }
 
     public void FlywheelTuning(){
-        this.targetMainRPM = SmartDashboard.getNumber("Tuning/Main Flywheel RPM", 0);
-        this.targetSecRPM = SmartDashboard.getNumber("Tuning/Sec Flywheel RPM", 0);
+        this.targetMainRPM = SmartDashboard.getNumber("Tuning/Main Flywheel RPM", 2600);
+        this.targetSecRPM = SmartDashboard.getNumber("Tuning/Sec Flywheel RPM", 1500);
 
         this.applySetSpeed();
     }
