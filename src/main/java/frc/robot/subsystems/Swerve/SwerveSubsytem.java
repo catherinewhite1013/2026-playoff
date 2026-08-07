@@ -90,6 +90,13 @@ public class SwerveSubsytem extends SubsystemBase {
   private boolean aimingRotationOverrideEnabled = false;
   private double aimingRotationOverrideRadiansPerSecond = 0.0;
 
+  // While aiming/shooting, optionally cap the magnitude of driver translation.
+  // The limit is applied to the X/Y vector magnitude, so diagonal driving cannot
+  // exceed the requested maximum speed. PathPlanner setChassisSpeeds() is unchanged.
+  private boolean aimingTranslationSpeedLimitEnabled = false;
+  private double aimingTranslationMaxSpeedMetersPerSecond =
+      DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
+
 
   // Create odometer for swerve drive
   private final SwerveDrivePoseEstimator poseEstimator;
@@ -287,6 +294,22 @@ public class SwerveSubsytem extends SubsystemBase {
     return aimingRotationOverrideEnabled;
   }
 
+  /** Enable/refresh the teleop translation speed cap used while aiming/shooting. */
+  public void setAimingTranslationSpeedLimit(double maxSpeedMetersPerSecond) {
+    aimingTranslationSpeedLimitEnabled = true;
+    aimingTranslationMaxSpeedMetersPerSecond = Math.max(0.0, maxSpeedMetersPerSecond);
+  }
+
+  /** Remove the aiming/shooting translation cap and restore normal teleop speed. */
+  public void clearAimingTranslationSpeedLimit() {
+    aimingTranslationSpeedLimitEnabled = false;
+    aimingTranslationMaxSpeedMetersPerSecond = DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
+  }
+
+  public boolean isAimingTranslationSpeedLimitEnabled() {
+    return aimingTranslationSpeedLimitEnabled;
+  }
+
   public void setChassisOutput(double xSpeed, double ySpeed, double turningAngle) {
     setChassisOutput(xSpeed, ySpeed, turningAngle, false, false);
   }
@@ -299,6 +322,19 @@ public class SwerveSubsytem extends SubsystemBase {
       boolean angleFieldRelative, boolean robotRelative) {
     xSpeed *= DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
     ySpeed *= DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
+
+    // During aiming/shooting, cap the TOTAL translation vector magnitude rather
+    // than clamping X and Y independently. This keeps diagonal speed inside the
+    // same limit (e.g. a 2.0 m/s cap stays 2.0 m/s diagonally, not 2.83 m/s).
+    if (aimingTranslationSpeedLimitEnabled) {
+      double requestedTranslationSpeed = Math.hypot(xSpeed, ySpeed);
+      if (requestedTranslationSpeed > aimingTranslationMaxSpeedMetersPerSecond
+          && requestedTranslationSpeed > 1e-9) {
+        double scale = aimingTranslationMaxSpeedMetersPerSecond / requestedTranslationSpeed;
+        xSpeed *= scale;
+        ySpeed *= scale;
+      }
+    }
 
     // Normal driving keeps the driver's X/Y inputs. During aiming, only rotation is
     // replaced by SwerveAiming's PID output.
