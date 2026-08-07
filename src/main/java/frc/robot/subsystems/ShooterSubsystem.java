@@ -26,6 +26,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -57,8 +58,12 @@ public class ShooterSubsystem extends SubsystemBase{
     private final InterpolatingDoubleTreeMap mainSpeedMapNoIntake = new InterpolatingDoubleTreeMap();
     private final InterpolatingDoubleTreeMap secSpeedMapNoIntake = new InterpolatingDoubleTreeMap();
 
+    private final InterpolatingDoubleTreeMap flightTimeMap = new InterpolatingDoubleTreeMap();
+
     private double targetMainRPM = 0;
     private double targetSecRPM = 0;
+
+    private Translation2d lastVirtualTarget = new Translation2d();
 
     public ShooterSubsystem() {
         
@@ -106,7 +111,6 @@ public class ShooterSubsystem extends SubsystemBase{
         secondaryFlywheelMotor.configure(secondaryFlywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         setupInterpolationTable();
-        setupInterpolationTableNoIntake();
 
         HardwareHealth.getInstance().register(new CheckableSpark(secondaryFlywheelMotor, "Shooter/sec Flywheel"));
         HardwareHealth.getInstance().register(new CheckableTalonFX(mainFlywheelMotor, "Shooter/main flywheel"));
@@ -120,14 +124,17 @@ public class ShooterSubsystem extends SubsystemBase{
             mainFlywheelSpeedMap.put(data[0], data[1]);
             secFlywheelSpeedMap.put(data[0], data[2]);
         }
-    }
 
-    private void setupInterpolationTableNoIntake(){
         for (double[] data : kShooterDataMapNoIntake){
             mainSpeedMapNoIntake.put(data[0], data[1]);
             secSpeedMapNoIntake.put(data[0], data[2]);
         }
+
+        for (double[] data : kFlightTimeMap){
+            flightTimeMap.put(data[0], data[1]);
+        }
     }
+
 
     //Main flywheel
     public double getMainFlywheelSpeed(){
@@ -160,6 +167,63 @@ public class ShooterSubsystem extends SubsystemBase{
         targetSecRPM = secSpeedMapNoIntake.get(distance);
 
         this.applySetSpeed();    //轉
+    }
+
+    // NEW: 飛行時間查表
+    public double getFlightTime(double distance){
+        return flightTimeMap.get(distance);
+    }
+
+    public Translation2d getVirtualTargetLocation(SwerveSubsytem swerveSubsytem){
+        Translation2d realTarget = getTargetHubLocation();
+
+        if (!kShootOnMoveEnabled) {
+            lastVirtualTarget = realTarget;
+            return realTarget;
+        }
+
+        Translation2d shooterFieldPosition = swerveSubsytem.getPose().getTranslation()
+            .plus(kRobotToShooter.rotateBy(swerveSubsytem.getPose().getRotation()));
+
+        ChassisSpeeds fieldVel = swerveSubsytem.getFieldRelativeSpeeds();
+        Translation2d velocity = new Translation2d(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
+
+        // 限速，避免極端速度把虛擬目標甩到離譜的位置
+        double speedNorm = velocity.getNorm();
+        if (speedNorm > kMaxCompensationVelocity) {
+            velocity = velocity.times(kMaxCompensationVelocity / speedNorm);
+        }
+
+        Translation2d virtualTarget = realTarget;
+
+        for (int i = 0; i < 3; i++) {
+            double distance = shooterFieldPosition.getDistance(virtualTarget);
+            double flightTime = getFlightTime(distance);
+            virtualTarget = realTarget.minus(velocity.times(flightTime));
+        }
+
+        lastVirtualTarget = virtualTarget;
+        return virtualTarget;
+    }
+
+    // NEW: 給 SwerveAiming 用，取得上一次算好的虛擬目標（避免同一 loop 算兩次）
+    public Translation2d getLastVirtualTarget(){
+        return lastVirtualTarget;
+    }
+
+    public void autoShoot(SwerveSubsytem swerveSubsytem){
+        Translation2d shooterFieldPosition = swerveSubsytem.getPose().getTranslation()
+            .plus(kRobotToShooter.rotateBy(swerveSubsytem.getPose().getRotation()));
+
+        // CHANGED: 用虛擬目標算距離
+        Translation2d virtualTarget = getVirtualTargetLocation(swerveSubsytem);
+        double distanceToHub = shooterFieldPosition.getDistance(virtualTarget);
+
+        this.autoAim(distanceToHub);
+
+        SmartDashboard.putNumber("Shooter/SOTM VirtualTarget X", virtualTarget.getX());
+        SmartDashboard.putNumber("Shooter/SOTM VirtualTarget Y", virtualTarget.getY());
+        SmartDashboard.putNumber("Shooter/SOTM Distance", distanceToHub);
     }
 
     public void autoShoot(SwerveSubsytem swerveSubsytem, boolean intakeAlive){

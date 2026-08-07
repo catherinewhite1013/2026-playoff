@@ -135,16 +135,16 @@ public class RobotContainer {
     //operator
     m_operatorController.leftTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem,shooterSubsystem, 0),
+        new SwerveAiming(swerveSubsytem,shooterSubsystem, 0,m_driverController.getLeftX(),m_driverController.getLeftY()),
         new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem,true)));
     m_operatorController.b().whileTrue(
       new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem, shooterSubsystem, 0),
+        new SwerveAiming(swerveSubsytem, shooterSubsystem, 0,m_driverController.getLeftX(),m_driverController.getLeftY()),
         new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem, false)
       ));
 
     m_operatorController.leftBumper().whileTrue(new ParallelCommandGroup(
-      new SwerveAiming(swerveSubsytem,shooterSubsystem, 1),
+      new SwerveAiming(swerveSubsytem,shooterSubsystem, 1,m_driverController.getLeftX(),m_driverController.getLeftY()),
       new AutoPass(shooterSubsystem, swerveSubsytem)));
 
     m_operatorController.rightTrigger().whileTrue(new IntakeRetract(intakeSubsystem,storageSubsystem));
@@ -171,7 +171,7 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("AutoShootCommand",
       new ParallelCommandGroup(
-        new SwerveAiming(swerveSubsytem,shooterSubsystem,0),
+        new SwerveAiming(swerveSubsytem,shooterSubsystem,0,0,0),
         new AutoShoot(shooterSubsystem, swerveSubsytem, statusSubsystem,true),
         new SequentialCommandGroup(
           new WaitUntilCommand(()-> shooterSubsystem.isReady() && SwerveAiming.aimIsReady()),

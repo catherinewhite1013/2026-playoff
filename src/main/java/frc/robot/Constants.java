@@ -312,6 +312,13 @@ public final class Constants {
       {3.0, 2900.0, 1900.0}
     };
 
+     public static final double[][] kFlightTimeMap = {
+      {1.6, 0.45},
+      {2.0, 0.5},
+      {2.5, 0.7},
+      {3.0, 1.0}
+    };
+
     public static final double kMainFlywheelErrTolerence = 300;
     public static final double kSecondaryFlywheelErrTolerence = 300;
 
@@ -324,6 +331,9 @@ public final class Constants {
     
     public static final double kRedPassLocation = Units.inchesToMeters(650);
     public static final double kBluePassLocation = Units.inchesToMeters(0);
+
+    public static final boolean kShootOnMoveEnabled = true;
+    public static final double kMaxCompensationVelocity = 3.0;
 
   }
 
