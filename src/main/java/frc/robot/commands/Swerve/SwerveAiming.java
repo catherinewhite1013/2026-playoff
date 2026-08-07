@@ -34,7 +34,9 @@ public class SwerveAiming extends Command {
         pidController.setTolerance(DriveConstants.kAimingErrTolerence);
         pidController.setIZone(DriveConstants.kIzLockHeading);
         
-        addRequirements(swerveSubsytem);
+        // Intentionally do NOT require the swerve subsystem here.
+        // The normal/default drive command must keep running so the driver can still
+        // command X/Y translation. This command only supplies a rotation override.
 
         
     }
@@ -63,7 +65,7 @@ public class SwerveAiming extends Command {
                 targetAngle = targetFieldAngle.getDegrees();
 
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
-                swerveSubsytem.setChassisOutput(0, 0, -rotationSpeed);
+                swerveSubsytem.setAimingRotationOverride(-rotationSpeed);
                 //System.out.println(rotationSpeed);
                 
                 break;
@@ -71,10 +73,11 @@ public class SwerveAiming extends Command {
             case 1: // Pass 
                 targetAngle = 180.0;
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
-                swerveSubsytem.setChassisOutput(0, 0, -rotationSpeed);
+                swerveSubsytem.setAimingRotationOverride(-rotationSpeed);
                 break;
 
             default:
+                swerveSubsytem.clearAimingRotationOverride();
                 break;
         }
 
@@ -85,6 +88,13 @@ public class SwerveAiming extends Command {
         SmartDashboard.putNumber("shoot Mode", shootMode);
         SmartDashboard.putBoolean("atSetpoint", pidController.atSetpoint());
         SmartDashboard.putBoolean("aimReady", aimIsReady());
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        // When the aim button/command is released, immediately give rotation back to
+        // the normal drive command.
+        swerveSubsytem.clearAimingRotationOverride();
     }
 
     @Override

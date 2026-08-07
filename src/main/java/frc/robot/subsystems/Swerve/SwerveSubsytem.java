@@ -85,6 +85,11 @@ public class SwerveSubsytem extends SubsystemBase {
   public double kP = DriveConstants.kPTheta, kI = DriveConstants.kITheta, kD = DriveConstants.kDTheta,
       kIZone = DriveConstants.kIZTheta;
 
+  // While aiming, keep the driver's X/Y translation but let SwerveAiming own rotation.
+  // This is only an overlay on teleop setChassisOutput(); PathPlanner setChassisSpeeds() is unchanged.
+  private boolean aimingRotationOverrideEnabled = false;
+  private double aimingRotationOverrideRadiansPerSecond = 0.0;
+
 
   // Create odometer for swerve drive
   private final SwerveDrivePoseEstimator poseEstimator;
@@ -266,6 +271,22 @@ public class SwerveSubsytem extends SubsystemBase {
         -chassisSpeeds.omegaRadiansPerSecond));
   }
 
+  /** Enable/refresh rotation override used by moving aim. */
+  public void setAimingRotationOverride(double turningSpeedRadiansPerSecond) {
+    aimingRotationOverrideEnabled = true;
+    aimingRotationOverrideRadiansPerSecond = turningSpeedRadiansPerSecond;
+  }
+
+  /** Return rotation control to the normal driver command. */
+  public void clearAimingRotationOverride() {
+    aimingRotationOverrideEnabled = false;
+    aimingRotationOverrideRadiansPerSecond = 0.0;
+  }
+
+  public boolean isAimingRotationOverrideEnabled() {
+    return aimingRotationOverrideEnabled;
+  }
+
   public void setChassisOutput(double xSpeed, double ySpeed, double turningAngle) {
     setChassisOutput(xSpeed, ySpeed, turningAngle, false, false);
   }
@@ -279,7 +300,11 @@ public class SwerveSubsytem extends SubsystemBase {
     xSpeed *= DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
     ySpeed *= DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
 
-    double turningSpeed = turningAngle;
+    // Normal driving keeps the driver's X/Y inputs. During aiming, only rotation is
+    // replaced by SwerveAiming's PID output.
+    double turningSpeed = aimingRotationOverrideEnabled
+        ? aimingRotationOverrideRadiansPerSecond
+        : turningAngle;
     // if (angleFieldRelative) {
     // // heading = getHeading() - turningAngle;
     // turningSpeed = -thetaController.calculate(getNormalizedAngle(getHeading()),
