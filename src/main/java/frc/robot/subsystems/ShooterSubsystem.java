@@ -60,6 +60,16 @@ public class ShooterSubsystem extends SubsystemBase{
     private double targetMainRPM = 0;
     private double targetSecRPM = 0;
 
+    // Moving-shot forward/back compensation.
+    // +radial speed means the robot is moving TOWARD the Hub.
+    // -radial speed means the robot is moving AWAY from the Hub.
+    private static final double kDefaultForwardBackLeadScale = 2.00;
+    private static final double kDefaultEffectiveShotSpeedMps = 10.0;
+    private static final double kMinEffectiveShotSpeedMps = 2.0;
+    private static final double kMaxEffectiveShotSpeedMps = 30.0;
+    private static final double kDefaultMaxForwardBackCompMeters = 0.35;
+    private static final double kMaxForwardBackFlightTimeSeconds = 0.80;
+
     public ShooterSubsystem() {
         
         //Main flywheel
@@ -113,6 +123,16 @@ public class ShooterSubsystem extends SubsystemBase{
 
         SmartDashboard.putNumber("Tuning/Main Flywheel RPM", 2600);
         SmartDashboard.putNumber("Tuning/Sec Flywheel RPM", 1500);
+
+        // Moving-shot forward/back compensation defaults.
+        // Keep the same empirical projectile-speed key used by SwerveAiming so
+        // lateral lead and forward/back distance compensation stay consistent.
+        SmartDashboard.putNumber(
+            "MovingShot/ForwardBackLeadScale",
+            kDefaultForwardBackLeadScale);
+        SmartDashboard.putNumber(
+            "MovingShot/MaxForwardBackCompMeters",
+            kDefaultMaxForwardBackCompMeters);
     }
 
     private void setupInterpolationTable(){
@@ -163,18 +183,113 @@ public class ShooterSubsystem extends SubsystemBase{
     }
 
     public void autoShoot(SwerveSubsytem swerveSubsytem, boolean intakeAlive){
-        Translation2d ShooterFieldPosition = swerveSubsytem.getPose().getTranslation()
+        Translation2d shooterFieldPosition = swerveSubsytem.getPose().getTranslation()
             .plus(kRobotToShooter.rotateBy(swerveSubsytem.getPose().getRotation()));    //Shooter 場地位置
 
         Translation2d currentHubPosition = getTargetHubLocation();
+        Translation2d shooterToHub = currentHubPosition.minus(shooterFieldPosition);
+        double distanceToHub = shooterToHub.getNorm();
 
-        double distanceToHub = ShooterFieldPosition.getDistance(currentHubPosition);
+        // Forward/back moving-shot compensation:
+        // - moving TOWARD Hub  -> use a slightly SHORTER lookup distance
+        // - moving AWAY Hub    -> use a slightly LONGER lookup distance
+        // This changes the existing distance->RPM lookup only; it does not replace
+        // or retune your shooter maps. At zero chassis speed it is exactly the old behavior.
+        double compensatedDistanceToHub = getForwardBackCompensatedDistance(
+            swerveSubsytem,
+            shooterToHub,
+            distanceToHub);
         
         if (intakeAlive){
-            this.autoAim(distanceToHub);
+            this.autoAim(compensatedDistanceToHub);
         }   else{
-            this.autoAimNoIntake(distanceToHub);
+            this.autoAimNoIntake(compensatedDistanceToHub);
         }
+    }
+
+    /**
+     * Compensate only the velocity component along the shooter->Hub line.
+     *
+     * Lateral velocity is handled by SwerveAiming's angular ballistic lead.
+     * This method handles the front/back component by shifting the distance used
+     * by the existing shooter RPM interpolation table.
+     */
+    private double getForwardBackCompensatedDistance(
+        SwerveSubsytem swerveSubsytem,
+        Translation2d shooterToHub,
+        double distanceToHub
+    ) {
+        if (distanceToHub < 1e-6) {
+            return distanceToHub;
+        }
+
+        var fieldSpeeds = swerveSubsytem.getFieldRelativeSpeeds();
+
+        // Unit vector from shooter toward Hub.
+        Translation2d towardHub = shooterToHub.div(distanceToHub);
+
+        // Dot product: positive = moving toward Hub, negative = moving away.
+        double radialSpeedTowardHub =
+            fieldSpeeds.vxMetersPerSecond * towardHub.getX()
+            + fieldSpeeds.vyMetersPerSecond * towardHub.getY();
+
+        double effectiveShotSpeed = MathUtil.clamp(
+            SmartDashboard.getNumber(
+                "MovingShot/EffectiveShotSpeedMps",
+                kDefaultEffectiveShotSpeedMps),
+            kMinEffectiveShotSpeedMps,
+            kMaxEffectiveShotSpeedMps);
+
+        // In the radial direction the ball's field speed is approximately
+        // shotSpeed + robotRadialSpeed.  Use that to estimate time in flight.
+        double radialBallSpeed = Math.max(
+            kMinEffectiveShotSpeedMps,
+            effectiveShotSpeed + radialSpeedTowardHub);
+
+        double flightTime = MathUtil.clamp(
+            distanceToHub / radialBallSpeed,
+            0.0,
+            kMaxForwardBackFlightTimeSeconds);
+
+        double forwardBackScale = MathUtil.clamp(
+            SmartDashboard.getNumber(
+                "MovingShot/ForwardBackLeadScale",
+                kDefaultForwardBackLeadScale),
+            0.0,
+            3.0);
+
+        double maxCompMeters = Math.max(
+            0.0,
+            SmartDashboard.getNumber(
+                "MovingShot/MaxForwardBackCompMeters",
+                kDefaultMaxForwardBackCompMeters));
+
+        double distanceCompensation = MathUtil.clamp(
+            radialSpeedTowardHub * flightTime * forwardBackScale,
+            -maxCompMeters,
+            maxCompMeters);
+
+        double compensatedDistance = Math.max(
+            0.0,
+            distanceToHub - distanceCompensation);
+
+        SmartDashboard.putNumber(
+            "MovingShot/RadialSpeedTowardHubMps",
+            radialSpeedTowardHub);
+        SmartDashboard.putNumber(
+            "MovingShot/ForwardBackFlightTimeSec",
+            flightTime);
+        SmartDashboard.putNumber(
+            "MovingShot/ForwardBackDistanceCompMeters",
+            distanceCompensation);
+        SmartDashboard.putNumber(
+            "MovingShot/RawShotDistanceMeters",
+            distanceToHub);
+        SmartDashboard.putNumber(
+            "MovingShot/CompensatedShotDistanceMeters",
+            compensatedDistance);
+
+        return compensatedDistance;
     }
     
     public void applySetSpeed(){
