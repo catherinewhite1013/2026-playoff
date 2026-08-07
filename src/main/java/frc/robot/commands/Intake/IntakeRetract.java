@@ -40,6 +40,7 @@ public class IntakeRetract extends Command{
     @Override
     public void end(boolean interrupted){
         storageSubsystem.setStorageAction(StorageAction.kStop, ShooterFeedAction.kStop);
+        intakeSubsystem.stopextendMotor();
     }
 
     @Override

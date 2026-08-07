@@ -10,7 +10,7 @@ public class AutoShoot extends Command{
     private final ShooterSubsystem shooterSubsystem;
     private final SwerveSubsytem swerveSubsytem;
     private final StatusSubsystem statusSubsystem;
-    private final boolean intakeAlive;
+    private boolean intakeAlive = true;
 
     public AutoShoot(
       ShooterSubsystem shooterSubsystem,

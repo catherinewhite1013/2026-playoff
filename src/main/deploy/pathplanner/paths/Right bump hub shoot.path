@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 6.730299572039942,
-        "y": 3.782696148359487
+        "y": 3.781644444444444
       },
       "prevControl": null,
       "nextControl": {
         "x": 6.80793152639087,
-        "y": 2.669971469329529
+        "y": 2.668919765414486
       },
       "isLocked": false,
       "linkedName": "right get hub end"

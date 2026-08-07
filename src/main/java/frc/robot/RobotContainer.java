@@ -152,6 +152,7 @@ public class RobotContainer {
 
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
     m_operatorController.pov(180).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kIn));
+    m_operatorController.a().whileTrue(new InstantCommand(()-> intakeSubsystem.stopextendMotor()));
     
     m_operatorController.x().whileTrue(new FlywheelTuning(shooterSubsystem));
     m_operatorController.y().whileTrue(new InstantCommand(()-> shooterSubsystem.calcShooterToHub(swerveSubsytem.getPose())));
@@ -219,7 +220,6 @@ public class RobotContainer {
     SmartDashboard.putString("GameTimer/Shift Label", result.phase().label());
     SmartDashboard.putNumber("GameTimer/Shift CD", result.secondsToNextChange());
     // Deprecated typo retained temporarily for existing Elastic dashboard layouts.
-    SmartDashboard.putNumber("GameTimer/Shiht CD", result.secondsToNextChange());
     SmartDashboard.putBoolean("GameTimer/Hub Active", result.hubActive());
     SmartDashboard.putBoolean("GameTimer/Hub Status Known", result.hubStatusKnown());
     SmartDashboard.putString(

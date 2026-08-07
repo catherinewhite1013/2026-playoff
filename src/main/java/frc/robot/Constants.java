@@ -289,27 +289,27 @@ public final class Constants {
     public static final double kMainFlywheelkS = 0.2;
     public static final double kMainFlywheelkP = 0.5;
 
-    public static final double kSecondaryFlywheelKP = 0.0003;
+    public static final double kSecondaryFlywheelKP = 0.00004;
     public static final double kSecondaryFlywheelKI = 0.0;
-    public static final double kSecondaryFlywheelKD = 0.02;
-    public static final double kSecondaryFlywheelKV = 0.0032;
-    public static final double kSecondaryFlywheelKS = 0.25;
+    public static final double kSecondaryFlywheelKD = 0.0;
+    public static final double kSecondaryFlywheelKV = 0.00204;
+    public static final double kSecondaryFlywheelKS = 0.43;
 
     public static final Translation2d kRobotToShooter = new Translation2d(0.0, 0.0);
 
     //TODO:
     public static final double[][] kShooterDataMap = {
-      {1.6, 2600.0, 1500.0},
-      {2.0, 2600.0, 1500.0},// 2 , 2550, 1500
-      {2.5, 2800.0, 1500.0},//2.5, 2900, 1500,
-      {3.0, 2800.0, 1850.0}
+      {1.6, 2600.0, 1550.0},
+      {2.0, 2600.0, 1550.0},// 2 , 2550, 1500
+      {2.5, 2800.0, 1550.0},//2.5, 2900, 1500,
+      {3.0, 2800.0, 1900.0}
     };
 
     public static final double[][] kShooterDataMapNoIntake = {
-      {1.6, 3000.0, 1600.0},
-      {2.0, 3000.0, 1700.0},// 2 , 2550, 1500
-      {2.5, 3300.0, 1700.0},//2.5, 2900, 1500,
-      {3.0, 3300.0, 2000.0}
+      {1.6, 2600.0, 1550.0},
+      {2.0, 2600.0, 1550.0},// 2 , 2550, 1500
+      {2.5, 2900.0, 1550.0},//2.5, 2900, 1500,
+      {3.0, 2900.0, 1900.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 300;
