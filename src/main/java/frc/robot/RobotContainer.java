@@ -17,8 +17,10 @@ import frc.robot.commands.Intake.IntakeRollerManual;
 import frc.robot.commands.Shooter.FlywheelTuning;
 import frc.robot.commands.Shooter.AutoPass;
 import frc.robot.commands.Shooter.AutoShoot;
+import frc.robot.commands.Swerve.PathfindToBallCluster;
 import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
+import frc.robot.commands.vision.ballFinding;
 import frc.robot.logging.RobotTelemetry;
 import frc.robot.match.HubShiftCalculator;
 import frc.robot.match.HubShiftCalculator.AllianceColor;
@@ -33,15 +35,21 @@ import frc.robot.subsystems.StorageSubsystem;
 import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -78,6 +86,8 @@ public class RobotContainer {
   // Create auto chooser
   private final SendableChooser<Command> autoChooser;
   private final SendableChooser<TestOverride> hubTestOverrideChooser = new SendableChooser<>();
+
+  private final AtomicReference<Translation2d> lastScannedCluster = new AtomicReference<>();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -180,9 +190,37 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("IntakeGetBall", 
       new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+
+    
+    NamedCommands.registerCommand("ScanAndGoToBallCluster",
+        new SequentialCommandGroup(
+            // 掃描階段：機器人在打完第一趟球後，短暫轉向掃描場地
+            new ballFinding(
+                swerveSubsytem,
+                lastScannedCluster::set,
+                0.5,   // 掃描 0.5 秒，依實際幀率調整
+                false  // 若共用相機改成 true
+            ),
+            // 導航階段：往密度最高的地方開，開啟 intake 邊走邊撿
+            new ParallelCommandGroup(
+                new DeferredCommand(
+                    () -> PathfindToBallCluster.build(
+                        lastScannedCluster.get(),
+                        getFallbackScanPose(), // 找不到球時的預設收球點
+                        Rotation2d.fromDegrees(0)),
+                    Set.of(swerveSubsytem)
+                ),
+                new IntakeAuto(intakeSubsystem, ExtendState.kExtend)
+            )
+        ));
+}
+private Pose2d getFallbackScanPose() {
+    // 沒偵測到球時的保底位置，例如場地上固定的收球區中心
+    return new Pose2d(6.0, 3.7, Rotation2d.fromDegrees(90));
+}
     
     //NamedCommands.registerCommand("PassBall", getAutonomousCommand());
-  }
+
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

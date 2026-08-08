@@ -182,7 +182,32 @@ public final class Constants {
 
   public static final class LimelightConstants {
     public static final String kLimelightName = "limelight";
+    public static final String kLimelightIP = "10.81.69.20";
     
+  }
+
+  public static final class BallVisionConstants {
+    public static final String kBallLimelightName = "limelight2";
+    public static final String kLimelight2IP = "10.81.69.15";
+    // 若共用同一顆相機，就用 LimelightConstants.kLimelightName，並管理 pipeline index
+    public static final int kBallDetectorPipelineIndex = 1; // Neural Detector pipeline
+    public static final int kAprilTagPipelineIndex = 0;
+
+    // 相機安裝參數（量測後填入，用於距離估算）
+    public static final double kCameraHeightMeters = 0.55;
+    public static final double kCameraMountAngleDegrees = 15.0; // 相機向下傾角，向下為正
+    public static final double kBallHeightMeters = 0.12; // 球中心離地高度（依你們遊戲的球尺寸）
+
+    // 密度分析參數
+    public static final double kClusterRadiusMeters = 0.9; // 群集半徑
+    public static final int kMinDetectionsForValidCluster = 2;
+    public static final double kMaxBallDetectionRangeMeters = 5.0; // 太遠的偵測不可信，過濾掉
+
+    // pathfinding 限制
+    public static final double kPathfindMaxVelocityMps = 3.5;
+    public static final double kPathfindMaxAccelMps2 = 3.0;
+    public static final double kPathfindMaxAngularVelDeg = 360;
+    public static final double kPathfindMaxAngularAccelDeg = 540;
   }
 
   public static final class IntakeConstants {
