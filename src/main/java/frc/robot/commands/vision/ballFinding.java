@@ -76,6 +76,7 @@ public class ballFinding extends Command {
         SmartDashboard.putString("BallVision/CameraName", kBallLimelightName);
         SmartDashboard.putNumber("BallVision/RequestedPipeline", kBallDetectorPipelineIndex);
         SmartDashboard.putBoolean("BallVision/ClusterFound", false);
+        SmartDashboard.putBoolean("BallVision/SearchCommandActive", true);
     }
 
     @Override
@@ -185,6 +186,7 @@ public class ballFinding extends Command {
         // Stop the active search rotation before the next command takes ownership.
         swerveSubsytem.setChassisOutput(0.0, 0.0, 0.0, false, true);
         SmartDashboard.putString("BallVision/SearchState", interrupted ? "CANCELLED" : "CHASE");
+        SmartDashboard.putBoolean("BallVision/SearchCommandActive", false);
         SmartDashboard.putBoolean("BallVision/ClusterFound", bestClusterCenter != null);
         SmartDashboard.putNumber("BallVision/ClusterBallCount", bestClusterCount);
 

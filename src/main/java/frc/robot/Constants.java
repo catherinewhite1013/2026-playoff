@@ -246,8 +246,22 @@ public final class Constants {
     // Pathfinding limits are intentionally unchanged from the existing project.
     // Slow FUEL-search/chase tuning. Hold Driver B to rotate-scan until FUEL is seen,
     // then PathPlanner approaches the selected cluster at a deliberately low speed.
-    public static final double kBallSearchAngularSpeedRadPerSec = 0.60;
-    public static final double kBallSearchPostDetectionSeconds = 0.60;
+    public static final double kBallSearchAngularSpeedRadPerSec = 0.90;
+    public static final double kBallSearchPostDetectionSeconds = 0.25;
+
+    // Continuous Driver-B collection. While chasing, tolerate short detector dropouts.
+    // If the selected target stays missing longer than this while the robot is still
+    // far away, cancel the stale path and return to SEARCH automatically.
+    public static final double kBallTargetLostTimeoutSeconds = 0.35;
+    public static final double kBallTargetMatchRadiusMeters = 0.90;
+    // Once this close to the old target, finish the last short approach even if the
+    // camera loses it because the FUEL has entered the intake/camera blind area.
+    public static final double kBallFinishApproachDistanceMeters = 0.70;
+
+    // PathPlanner autonomous collection must be finite so the rest of the auto can continue.
+    // CollectBallsAuto repeats SEARCH -> CHASE until this timeout expires.
+    public static final double kBallAutoCollectTimeoutSeconds = 4.0;
+
     public static final double kBallPathfindMaxVelocityMps = 1.00;
     public static final double kBallPathfindMaxAccelMps2 = 1.50;
     public static final double kBallPathfindMaxAngularVelDeg = 120.0;

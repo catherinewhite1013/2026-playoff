@@ -9,6 +9,7 @@ import frc.robot.Constants.IntakeConstants.ExtendManual;
 import frc.robot.Constants.IntakeConstants.ExtendState;
 import frc.robot.Constants.IntakeConstants.RollerAction;
 import frc.robot.Constants.StorageConstant.StorageAction;
+import static frc.robot.Constants.BallVisionConstants.*;
 import frc.robot.commands.StorageCommand;
 import frc.robot.commands.Intake.IntakeAuto;
 import frc.robot.commands.Intake.IntakeExtendManual;
@@ -21,6 +22,7 @@ import frc.robot.commands.Swerve.PathfindToBallCluster;
 import frc.robot.commands.Swerve.SwerveAiming;
 import frc.robot.commands.Swerve.SwerveFieldRelative;
 import frc.robot.commands.vision.ballFinding;
+import frc.robot.commands.vision.BallVisionTracker;
 import frc.robot.logging.RobotTelemetry;
 import frc.robot.match.HubShiftCalculator;
 import frc.robot.match.HubShiftCalculator.AllianceColor;
@@ -36,6 +38,7 @@ import frc.robot.subsystems.Swerve.SwerveSubsytem;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -49,6 +52,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -144,10 +148,10 @@ public class RobotContainer {
     m_driverController.y().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
 
     // TEST: hold B to slowly rotate-search with the intake-side Limelight.
-    // After FUEL is seen, compare clusters briefly, then pathfind at <= 1.0 m/s
-    // toward the densest cluster and run the intake.
+    // Intake extends/runs immediately while SEARCH is active. After FUEL is seen,
+    // the SAME button press transitions to pathfinding at <= 1.0 m/s.
     // Release B: stop ONLY the roller; keep the intake extended.
-    m_driverController.b().whileTrue(buildBallClusterAutoCommand(false));
+    m_driverController.b().whileTrue(buildContinuousBallCollectionCommand());
 
     //operator
     m_operatorController.leftTrigger().whileTrue(  //aiming
@@ -202,6 +206,25 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "ScanAndGoToBallCluster",
         buildBallClusterAutoCommand(true));
+
+    // PathPlanner Auto command: continuously SEARCH -> CHASE -> SEARCH for a
+    // bounded amount of time, then return control to the next Auto node.
+    // Use this as a Named Command node in the PathPlanner Auto command tree.
+    NamedCommands.registerCommand(
+        "CollectBallsAuto",
+        new DeferredCommand(
+            () -> buildContinuousBallCollectionCommand()
+                .withTimeout(kBallAutoCollectTimeoutSeconds)
+                .finallyDo(interrupted -> {
+                    // End the auto collection segment safely. Keep the intake extended,
+                    // matching Driver-B behavior, but stop roller and drivetrain output.
+                    intakeSubsystem.stopRollerMotor();
+                    swerveSubsytem.stopModules();
+                    SmartDashboard.putString("BallVision/SearchState", "AUTO_DONE");
+                }),
+            Set.of(swerveSubsytem, intakeSubsystem)
+        )
+    );
 }
 
 private Command buildBallSearchIntakeCommand() {
@@ -221,32 +244,115 @@ private Command buildBallSearchIntakeCommand() {
 }
 
 private Command buildBallClusterAutoCommand(boolean useFallbackWhenNoBall) {
-    return new SequentialCommandGroup(
-        // Dedicated intake-side Limelight actively rotates the drivetrain at low speed
-        // until a valid FUEL cluster appears, then compares visible clusters briefly.
+    // Legacy/one-shot autonomous behavior: one search, one path, then finish.
+    // Kept for the existing ScanAndGoToBallCluster NamedCommand.
+    Command oneShotSearchThenChase = new SequentialCommandGroup(
+        new InstantCommand(() -> lastScannedCluster.set(null)),
         new ballFinding(
             swerveSubsytem,
             intakeSubsystem,
             lastScannedCluster::set,
             0.5,
-            false // false = dedicated second Limelight; do not restore AprilTag pipeline
+            false
         ),
-
-        // Then point the intake toward the best cluster, stop slightly before its
-        // center, and run the intake while PathPlanner drives there.
-        new ParallelCommandGroup(
-            new DeferredCommand(
-                () -> PathfindToBallCluster.build(
-                    lastScannedCluster.get(),
-                    useFallbackWhenNoBall ? getFallbackScanPose() : null,
-                    swerveSubsytem.getPose()),
-                Set.of(swerveSubsytem)
-            ),
-            useFallbackWhenNoBall
-                ? new IntakeAuto(intakeSubsystem, ExtendState.kExtend)
-                : buildBallSearchIntakeCommand()
+        new DeferredCommand(
+            () -> PathfindToBallCluster.build(
+                lastScannedCluster.get(),
+                useFallbackWhenNoBall ? getFallbackScanPose() : null,
+                swerveSubsytem.getPose()),
+            Set.of(swerveSubsytem)
         )
     );
+
+    return new ParallelCommandGroup(
+        oneShotSearchThenChase,
+        new IntakeAuto(intakeSubsystem, ExtendState.kExtend)
+    );
+}
+
+/**
+ * Continuous FUEL collection used by Driver B and the timed PathPlanner
+ * CollectBallsAuto NamedCommand. This command intentionally never finishes by
+ * itself; the Driver button release or the autonomous timeout ends it.
+ */
+private Command buildContinuousBallCollectionCommand() {
+    BallVisionTracker tracker = new BallVisionTracker(swerveSubsytem, intakeSubsystem);
+
+    Command continuousSearchAndChase = Commands.repeatingSequence(
+        new InstantCommand(() -> lastScannedCluster.set(null)),
+
+        // SEARCH: rotate until a valid cluster is found, then compare briefly.
+        new ballFinding(
+            swerveSubsytem,
+            intakeSubsystem,
+            lastScannedCluster::set,
+            0.5,
+            false
+        ),
+
+        // CHASE: pathfind to the selected cluster. If it disappears while still
+        // far away, cancel the stale path and immediately start SEARCH again.
+        new DeferredCommand(
+            () -> buildTrackedBallChase(tracker, lastScannedCluster.get()),
+            Set.of(swerveSubsytem)
+        )
+    );
+
+    return new ParallelCommandGroup(
+        continuousSearchAndChase,
+        tracker,
+        buildBallSearchIntakeCommand()
+    );
+}
+
+private Command buildTrackedBallChase(
+        BallVisionTracker tracker,
+        Translation2d selectedTarget) {
+    if (selectedTarget == null) {
+        SmartDashboard.putString("BallVision/SearchState", "REACQUIRE");
+        return Commands.none();
+    }
+
+    AtomicBoolean lostTarget = new AtomicBoolean(false);
+
+    Command pathCommand = PathfindToBallCluster.build(
+        selectedTarget,
+        null,
+        swerveSubsytem.getPose()
+    ).beforeStarting(() -> {
+        lostTarget.set(false);
+        SmartDashboard.putString("BallVision/SearchState", "CHASE");
+        SmartDashboard.putNumber("BallVision/ChaseTargetX", selectedTarget.getX());
+        SmartDashboard.putNumber("BallVision/ChaseTargetY", selectedTarget.getY());
+    });
+
+    Command lostTargetCommand = new WaitUntilCommand(() -> {
+        double robotDistanceToOldTarget = swerveSubsytem.getPose()
+            .getTranslation()
+            .getDistance(selectedTarget);
+
+        // Near the intake, losing the target is expected because the ball moves under
+        // the camera. Finish the last short approach instead of spinning away.
+        if (robotDistanceToOldTarget <= kBallFinishApproachDistanceMeters) {
+            return false;
+        }
+
+        boolean lost = !tracker.isSelectedTargetStillVisible(selectedTarget);
+        if (lost) {
+            lostTarget.set(true);
+        }
+        return lost;
+    });
+
+    return pathCommand
+        .raceWith(lostTargetCommand)
+        .finallyDo(interrupted -> {
+            if (lostTarget.get()) {
+                SmartDashboard.putString("BallVision/SearchState", "LOST_REACQUIRE");
+            } else {
+                SmartDashboard.putString("BallVision/SearchState", "NEXT_SEARCH");
+            }
+        });
 }
 
 private Pose2d getFallbackScanPose() {
