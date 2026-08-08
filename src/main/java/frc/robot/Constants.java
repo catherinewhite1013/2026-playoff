@@ -181,29 +181,79 @@ public final class Constants {
   }
 
   public static final class LimelightConstants {
-    public static final String kLimelightName = "limelight";
-    public static final String kLimelightIP = "10.81.69.20";
+    // Compatibility/test setup: keep the existing shooter-side Limelight NetworkTables name.
+    // This must exactly match the physical camera hostname / NT table name.
+    public static final String kLimelightName = "limelight-shooter";
+    public static final String kLimelightIP = "10.81.69.11";
     
   }
 
   public static final class BallVisionConstants {
-    public static final String kBallLimelightName = "limelight2";
-    public static final String kLimelight2IP = "10.81.69.15";
-    // 若共用同一顆相機，就用 LimelightConstants.kLimelightName，並管理 pipeline index
-    public static final int kBallDetectorPipelineIndex = 1; // Neural Detector pipeline
+    // Compatibility/test setup: keep the existing intake-side Limelight NT name.
+    // The two cameras must still use unique network addresses.
+    public static final String kBallLimelightName = "limelight-intake";
+    public static final String kLimelight2IP = "10.81.69.12";
+
+    // Pipeline 0 is the 2026 FUEL neural detector on the intake Limelight.
+    public static final int kBallDetectorPipelineIndex = 0;
     public static final int kAprilTagPipelineIndex = 0;
+    public static final int kBallDetectorClassId = 0;
 
-    // 相機安裝參數（量測後填入，用於距離估算）
-    public static final double kCameraHeightMeters = 0.55;
-    public static final double kCameraMountAngleDegrees = 15.0; // 相機向下傾角，向下為正
-    public static final double kBallHeightMeters = 0.12; // 球中心離地高度（依你們遊戲的球尺寸）
+    // Intake-side camera installation.
+    // WPILib / Limelight distance math uses +pitch = upward, so 28 deg downward is -28.
+    public static final double kCameraMountPitchDegrees = -28.0;
 
-    // 密度分析參數
-    public static final double kClusterRadiusMeters = 0.9; // 群集半徑
-    public static final int kMinDetectionsForValidCluster = 2;
-    public static final double kMaxBallDetectionRangeMeters = 5.0; // 太遠的偵測不可信，過濾掉
+    // Camera points toward the robot intake. This assumes robot +X / heading 0 points
+    // toward the intake. Change this if your pose coordinate convention is different.
+    public static final double kCameraYawOffsetDegrees = 0.0;
 
-    // pathfinding 限制
+    // Physical Limelight is rolled 180 degrees (upside-down, Ethernet jack upward).
+    // txnc and tync are inverted back into the robot's normal camera coordinate frame.
+    public static final boolean kCameraUpsideDown = true;
+
+    // Intake Limelight pose relative to robot center (robot coordinates).
+    // +X points toward the intake and +Y points to robot-left.
+    // The camera is mounted on the moving intake, so both X and height Z change
+    // with intake extension while yaw/pitch remain fixed.
+    // Retracted: X = 0.33 m, Y = 0.00 m, Z = 0.38 m.
+    // Extended:  X = 0.59 m, Y = 0.00 m, Z = 0.315 m.
+    public static final double kBallCameraRetractedXMeters = 0.33;
+    public static final double kBallCameraExtensionTravelMeters = 0.26;
+    public static final double kBallCameraYMeters = 0.0;
+    public static final double kBallCameraRetractedHeightMeters = 0.38;
+    public static final double kBallCameraExtendedHeightMeters = 0.315;
+
+    // Backward-compatible fallback height when live IntakeSubsystem geometry is unavailable.
+    public static final double kCameraHeightMeters = kBallCameraRetractedHeightMeters;
+
+    // Safe fixed offset used only by backward-compatible helpers when no IntakeSubsystem
+    // is available. The live ball-finding command uses IntakeSubsystem.getBallCameraRobotOffset().
+    public static final Translation2d kRobotToBallCamera =
+        new Translation2d(kBallCameraRetractedXMeters, kBallCameraYMeters);
+
+    // 2026 REBUILT FUEL is 5.91 in nominal diameter; target its center height.
+    public static final double kBallDiameterMeters = Units.inchesToMeters(5.91);
+    public static final double kBallHeightMeters = kBallDiameterMeters / 2.0;
+
+    // Density analysis: choose the region containing the most visible FUEL first.
+    public static final double kClusterRadiusMeters = 0.9;
+    public static final int kMinDetectionsForValidCluster = 1;
+    public static final double kMaxBallDetectionRangeMeters = 8.0;
+
+    // Stop slightly before the detected cluster so the intake reaches the FUEL first.
+    public static final double kBallApproachStopDistanceMeters = 0.35;
+
+    // Pathfinding limits are intentionally unchanged from the existing project.
+    // Slow FUEL-search/chase tuning. Hold Driver B to rotate-scan until FUEL is seen,
+    // then PathPlanner approaches the selected cluster at a deliberately low speed.
+    public static final double kBallSearchAngularSpeedRadPerSec = 0.60;
+    public static final double kBallSearchPostDetectionSeconds = 0.60;
+    public static final double kBallPathfindMaxVelocityMps = 1.00;
+    public static final double kBallPathfindMaxAccelMps2 = 1.50;
+    public static final double kBallPathfindMaxAngularVelDeg = 120.0;
+    public static final double kBallPathfindMaxAngularAccelDeg = 240.0;
+
+    // Legacy/general pathfinding limits retained for any other code that still uses them.
     public static final double kPathfindMaxVelocityMps = 3.5;
     public static final double kPathfindMaxAccelMps2 = 3.0;
     public static final double kPathfindMaxAngularVelDeg = 360;

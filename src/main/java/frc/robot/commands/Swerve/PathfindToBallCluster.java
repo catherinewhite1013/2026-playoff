@@ -15,11 +15,56 @@ public final class PathfindToBallCluster {
     private PathfindToBallCluster() {}
 
     /**
-     * 建立一個導航到球堆位置的 Command。
-     * targetSupplier 若回傳 null（掃描時沒找到球），fallbackPose 會被使用。
+     * Build a path that points the intake toward the selected FUEL cluster and
+     * stops slightly short so the intake reaches the balls before robot center.
      */
-    public static Command build(Translation2d target, Pose2d fallbackPose, Rotation2d approachHeading) {
-        Pose2d targetPose = (target != null)
+    public static Command build(
+            Translation2d target,
+            Pose2d fallbackPose,
+            Pose2d currentRobotPose) {
+        Pose2d targetPose;
+
+        if (target != null) {
+            Translation2d robotToTarget = target.minus(currentRobotPose.getTranslation());
+            double targetDistance = robotToTarget.getNorm();
+            Rotation2d approachHeading = robotToTarget.getAngle();
+
+            double stopDistance = Math.min(
+                kBallApproachStopDistanceMeters,
+                Math.max(0.0, targetDistance - 0.05)
+            );
+
+            Translation2d approachOffset = new Translation2d(
+                stopDistance * approachHeading.getCos(),
+                stopDistance * approachHeading.getSin()
+            );
+            Translation2d approachPoint = target.minus(approachOffset);
+
+            targetPose = new Pose2d(approachPoint, approachHeading);
+        } else if (fallbackPose != null) {
+            targetPose = fallbackPose;
+        } else {
+            // Safe test behavior: if no FUEL was detected and no fallback was
+            // requested, do not move the drivetrain.
+            return Commands.none();
+        }
+
+        PathConstraints constraints = new PathConstraints(
+            kBallPathfindMaxVelocityMps,
+            kBallPathfindMaxAccelMps2,
+            Math.toRadians(kBallPathfindMaxAngularVelDeg),
+            Math.toRadians(kBallPathfindMaxAngularAccelDeg)
+        );
+
+        return AutoBuilder.pathfindToPose(targetPose, constraints, 0.0);
+    }
+
+    /** Backward-compatible overload for older call sites. */
+    public static Command build(
+            Translation2d target,
+            Pose2d fallbackPose,
+            Rotation2d approachHeading) {
+        Pose2d targetPose = target != null
             ? new Pose2d(target, approachHeading)
             : fallbackPose;
 
@@ -27,7 +72,8 @@ public final class PathfindToBallCluster {
             kPathfindMaxVelocityMps,
             kPathfindMaxAccelMps2,
             Math.toRadians(kPathfindMaxAngularVelDeg),
-            Math.toRadians(kPathfindMaxAngularAccelDeg));
+            Math.toRadians(kPathfindMaxAngularAccelDeg)
+        );
 
         return AutoBuilder.pathfindToPose(targetPose, constraints, 0.0);
     }

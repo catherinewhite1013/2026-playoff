@@ -53,6 +53,7 @@ import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -142,6 +143,12 @@ public class RobotContainer {
     m_driverController.leftTrigger().whileTrue(new IntakeAuto(intakeSubsystem, ExtendState.kClose));
     m_driverController.y().whileTrue(new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
 
+    // TEST: hold B to slowly rotate-search with the intake-side Limelight.
+    // After FUEL is seen, compare clusters briefly, then pathfind at <= 1.0 m/s
+    // toward the densest cluster and run the intake.
+    // Release B: stop ONLY the roller; keep the intake extended.
+    m_driverController.b().whileTrue(buildBallClusterAutoCommand(false));
+
     //operator
     m_operatorController.leftTrigger().whileTrue(  //aiming
       new ParallelCommandGroup(
@@ -192,28 +199,56 @@ public class RobotContainer {
       new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
 
     
-    NamedCommands.registerCommand("ScanAndGoToBallCluster",
-        new SequentialCommandGroup(
-            // 掃描階段：機器人在打完第一趟球後，短暫轉向掃描場地
-            new ballFinding(
-                swerveSubsytem,
-                lastScannedCluster::set,
-                0.5,   // 掃描 0.5 秒，依實際幀率調整
-                false  // 若共用相機改成 true
-            ),
-            // 導航階段：往密度最高的地方開，開啟 intake 邊走邊撿
-            new ParallelCommandGroup(
-                new DeferredCommand(
-                    () -> PathfindToBallCluster.build(
-                        lastScannedCluster.get(),
-                        getFallbackScanPose(), // 找不到球時的預設收球點
-                        Rotation2d.fromDegrees(0)),
-                    Set.of(swerveSubsytem)
-                ),
-                new IntakeAuto(intakeSubsystem, ExtendState.kExtend)
-            )
-        ));
+    NamedCommands.registerCommand(
+        "ScanAndGoToBallCluster",
+        buildBallClusterAutoCommand(true));
 }
+
+private Command buildBallSearchIntakeCommand() {
+    return new StartEndCommand(
+        () -> {
+            intakeSubsystem.setExtendAuto(ExtendState.kExtend);
+            intakeSubsystem.setRollerState(RollerAction.kGetBall);
+        },
+        () -> {
+            // Driver released B (or command was interrupted): stop collecting, but
+            // intentionally DO NOT command ExtendState.kClose. The closed-loop extend
+            // setpoint remains at kExtend, so the intake stays out.
+            intakeSubsystem.stopRollerMotor();
+        },
+        intakeSubsystem
+    );
+}
+
+private Command buildBallClusterAutoCommand(boolean useFallbackWhenNoBall) {
+    return new SequentialCommandGroup(
+        // Dedicated intake-side Limelight actively rotates the drivetrain at low speed
+        // until a valid FUEL cluster appears, then compares visible clusters briefly.
+        new ballFinding(
+            swerveSubsytem,
+            intakeSubsystem,
+            lastScannedCluster::set,
+            0.5,
+            false // false = dedicated second Limelight; do not restore AprilTag pipeline
+        ),
+
+        // Then point the intake toward the best cluster, stop slightly before its
+        // center, and run the intake while PathPlanner drives there.
+        new ParallelCommandGroup(
+            new DeferredCommand(
+                () -> PathfindToBallCluster.build(
+                    lastScannedCluster.get(),
+                    useFallbackWhenNoBall ? getFallbackScanPose() : null,
+                    swerveSubsytem.getPose()),
+                Set.of(swerveSubsytem)
+            ),
+            useFallbackWhenNoBall
+                ? new IntakeAuto(intakeSubsystem, ExtendState.kExtend)
+                : buildBallSearchIntakeCommand()
+        )
+    );
+}
+
 private Pose2d getFallbackScanPose() {
     // 沒偵測到球時的保底位置，例如場地上固定的收球區中心
     return new Pose2d(6.0, 3.7, Rotation2d.fromDegrees(90));

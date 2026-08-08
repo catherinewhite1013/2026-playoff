@@ -13,6 +13,8 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -25,6 +27,7 @@ import frc.robot.subsystems.Health.CheckableSpark;
 import frc.robot.subsystems.Health.HardwareHealth;
 
 import static frc.robot.Constants.IntakeConstants.*;
+import static frc.robot.Constants.BallVisionConstants.*;
 
 public class IntakeSubsystem extends SubsystemBase{
     private final SparkFlex rollerMotor = new SparkFlex(IDConstants.kRollerPort, MotorType.kBrushless);
@@ -71,6 +74,45 @@ public class IntakeSubsystem extends SubsystemBase{
 
     public double getExtendPosition(){
         return extendEncoder.getPosition();
+    }
+
+    /**
+     * Intake extension normalized to 0..1 using the same positions used by the
+     * automatic Close/Extend states. This is only used for camera geometry.
+     */
+    public double getExtendFraction(){
+        double retractedPosition = ExtendState.kClose.position;
+        double extendedPosition = ExtendState.kExtend.position;
+
+        if (Math.abs(extendedPosition - retractedPosition) < 1e-9) {
+            return 0.0;
+        }
+
+        return MathUtil.clamp(
+            (getExtendPosition() - retractedPosition) / (extendedPosition - retractedPosition),
+            0.0,
+            1.0);
+    }
+
+    /**
+     * Live intake-Limelight XY offset from robot center. The camera moves forward
+     * with the intake while remaining centered in robot Y.
+     */
+    public Translation2d getBallCameraRobotOffset(){
+        double cameraX = kBallCameraRetractedXMeters
+            + kBallCameraExtensionTravelMeters * getExtendFraction();
+
+        return new Translation2d(cameraX, kBallCameraYMeters);
+    }
+
+    /**
+     * Live intake-Limelight height above the floor. The intake linkage lowers the
+     * camera from about 0.38 m when retracted to about 0.315 m when fully extended.
+     */
+    public double getBallCameraHeightMeters(){
+        double fraction = getExtendFraction();
+        return kBallCameraRetractedHeightMeters
+            + (kBallCameraExtendedHeightMeters - kBallCameraRetractedHeightMeters) * fraction;
     }
 
     public void setRollerState(RollerAction action){
@@ -135,5 +177,9 @@ public class IntakeSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Intake / ExtendRelativePos", getExtendPosition());
         SmartDashboard.putNumber("Intake / ExtendCurrentAmps", extendCurrentAmps);
         SmartDashboard.putBoolean("Intake / ExtendCurrentFault", extendCurrentFault);
+        SmartDashboard.putNumber("BallVision/IntakeExtensionFraction", getExtendFraction());
+        SmartDashboard.putNumber("BallVision/CameraRobotX", getBallCameraRobotOffset().getX());
+        SmartDashboard.putNumber("BallVision/CameraRobotY", getBallCameraRobotOffset().getY());
+        SmartDashboard.putNumber("BallVision/CameraHeightMeters", getBallCameraHeightMeters());
     }
 }
