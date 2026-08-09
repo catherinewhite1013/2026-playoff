@@ -182,7 +182,6 @@ public class SwerveAiming extends Command {
         SmartDashboard.putNumber("shoot Mode", shootMode);
         SmartDashboard.putBoolean("atSetpoint", pidController.atSetpoint());
         SmartDashboard.putBoolean("aimReady", aimIsReady());
-        SmartDashboard.putNumber("rotation speed", rotationSpeed);
     }
 
 
