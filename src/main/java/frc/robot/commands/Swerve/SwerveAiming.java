@@ -163,6 +163,20 @@ public class SwerveAiming extends Command {
                 break;
         }
 
+        // In autonomous, a PathPlanner auto composition can reserve the drivetrain
+        // even when the current node is stationary. If no fresh PathPlanner output
+        // exists, actively apply 0/0/aim-omega so the robot can rotate in place.
+        // While a path is moving, setPathPlannerChassisSpeeds() applies this same
+        // aiming omega together with PathPlanner X/Y instead.
+        swerveSubsytem.applyAutonomousAimingRotationIfPathPlannerIdle();
+
+        SmartDashboard.putBoolean(
+            "MovingShot/AimingOverrideEnabled",
+            swerveSubsytem.isAimingRotationOverrideEnabled());
+        SmartDashboard.putBoolean(
+            "MovingShot/PathPlannerOutputFresh",
+            swerveSubsytem.hasFreshPathPlannerOutput());
+
         SmartDashboard.putNumber("targetAngle", targetAngle);
         SmartDashboard.putNumber("DeltaAngle", pidController.getError());
         SmartDashboard.putNumber("shoot Mode", shootMode);

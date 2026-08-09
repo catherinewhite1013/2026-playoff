@@ -97,6 +97,13 @@ public class SwerveSubsytem extends SubsystemBase {
   private double aimingTranslationMaxSpeedMetersPerSecond =
       DriveConstants.kTeleDriveMaxSpeedMetersPerSecond;
 
+  // PathPlanner owns the drivetrain during autonomous compositions, so the
+  // teleop default command may not be running even when the current auto node
+  // is not actively following a path. Track the last PathPlanner output so
+  // SwerveAiming can actively rotate in place only when PathPlanner is idle.
+  private double lastPathPlannerOutputTimestampSeconds = Double.NEGATIVE_INFINITY;
+  private static final double kPathPlannerOutputFreshSeconds = 0.08;
+
 
   // Create odometer for swerve drive
   private final SwerveDrivePoseEstimator poseEstimator;
@@ -270,12 +277,92 @@ public class SwerveSubsytem extends SubsystemBase {
   }
 
   private void setPathPlannerChassisSpeeds(ChassisSpeeds chassisSpeeds) {
-    // This drivetrain's command frame is rotated 180 degrees from WPILib's
-    // robot frame, where +X must point toward the intake.
+    lastPathPlannerOutputTimestampSeconds = Timer.getFPGATimestamp();
+
+    // PathPlanner gives ROBOT-relative speeds in WPILib's robot frame.
+    // This robot's drivetrain command frame is rotated 180 degrees, so keep
+    // the existing sign conversion.
+    double xSpeed = -chassisSpeeds.vxMetersPerSecond;
+    double ySpeed = -chassisSpeeds.vyMetersPerSecond;
+    double turningSpeed = -chassisSpeeds.omegaRadiansPerSecond;
+
+    // AUTO MOVING SHOT:
+    // Keep PathPlanner translation, but use the same moving-shot translation
+    // limit that is used in teleop while SwerveAiming is active.
+    if (aimingTranslationSpeedLimitEnabled) {
+      double requestedTranslationSpeed = Math.hypot(xSpeed, ySpeed);
+      if (requestedTranslationSpeed > aimingTranslationMaxSpeedMetersPerSecond
+          && requestedTranslationSpeed > 1e-9) {
+        double scale =
+            aimingTranslationMaxSpeedMetersPerSecond / requestedTranslationSpeed;
+        xSpeed *= scale;
+        ySpeed *= scale;
+      }
+    }
+
+    // AUTO MOVING SHOT:
+    // PathPlanner keeps X/Y, while SwerveAiming owns omega.
+    if (aimingRotationOverrideEnabled) {
+      turningSpeed = aimingRotationOverrideRadiansPerSecond;
+    }
+
+    SmartDashboard.putBoolean("MovingShot/AutoStationaryAimActive", false);
+    SmartDashboard.putBoolean(
+        "MovingShot/AutoPathAimOverrideActive",
+        aimingRotationOverrideEnabled);
+    SmartDashboard.putNumber(
+        "MovingShot/AutoPathTranslationSpeedMps",
+        Math.hypot(xSpeed, ySpeed));
+    SmartDashboard.putNumber(
+        "MovingShot/AutoPathAppliedOmegaRadPerSec",
+        turningSpeed);
+    SmartDashboard.putString(
+        "MovingShot/AutoAimDriveSource",
+        aimingRotationOverrideEnabled ? "PATHPLANNER_XY_AIM_OMEGA" : "PATHPLANNER_NORMAL");
+
+    setChassisSpeeds(new ChassisSpeeds(xSpeed, ySpeed, turningSpeed));
+  }
+
+  /**
+   * True when PathPlanner has actively supplied drivetrain output very recently.
+   * A small timeout bridges normal 20 ms scheduler timing without keeping an old
+   * path output alive during a stationary autonomous shooting node.
+   */
+  public boolean hasFreshPathPlannerOutput() {
+    return Timer.getFPGATimestamp() - lastPathPlannerOutputTimestampSeconds
+        <= kPathPlannerOutputFreshSeconds;
+  }
+
+  /**
+   * AUTO STATIONARY AIM:
+   * During a PathPlanner auto, the overall command composition may reserve the
+   * drivetrain even while the current node is not following a path. In that case
+   * the teleop/default drive command is not what should be relied on to apply the
+   * aiming override. If PathPlanner is idle, actively command zero translation
+   * plus the current aiming omega.
+   *
+   * This method intentionally does nothing while fresh PathPlanner output exists,
+   * so it cannot fight the moving-path output.
+   */
+  public void applyAutonomousAimingRotationIfPathPlannerIdle() {
+    if (!DriverStation.isAutonomousEnabled()
+        || !aimingRotationOverrideEnabled
+        || hasFreshPathPlannerOutput()) {
+      return;
+    }
+
     setChassisSpeeds(new ChassisSpeeds(
-        -chassisSpeeds.vxMetersPerSecond,
-        -chassisSpeeds.vyMetersPerSecond,
-        -chassisSpeeds.omegaRadiansPerSecond));
+        0.0,
+        0.0,
+        aimingRotationOverrideRadiansPerSecond));
+
+    SmartDashboard.putBoolean("MovingShot/AutoStationaryAimActive", true);
+    SmartDashboard.putNumber(
+        "MovingShot/AutoStationaryOmegaRadPerSec",
+        aimingRotationOverrideRadiansPerSecond);
+    SmartDashboard.putString(
+        "MovingShot/AutoAimDriveSource",
+        "STATIONARY_DIRECT_OMEGA");
   }
 
   /** Enable/refresh rotation override used by moving aim. */
