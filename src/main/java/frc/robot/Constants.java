@@ -149,10 +149,10 @@ public final class Constants {
     public static final double kMotorMaxOutput = 1;
 
 //------------------------AIMING-------------------------------- TODO:
-    public static final double kPLockHeading = 0.06;
-    public static final double kILockHeading = 0.3;
-    public static final double kIzLockHeading = 10;
-    public static final double kDLockHeading = 0.0;
+    public static final double kPLockHeading = 0.1;
+    public static final double kILockHeading = 0.0;
+    public static final double kIzLockHeading = 0.0;
+    public static final double kDLockHeading = 0.008;
     public static final double kAimingErrTolerence = 5.0;
 //--------------------------------------------------------------
 
@@ -260,7 +260,7 @@ public final class Constants {
 
     // PathPlanner autonomous collection must be finite so the rest of the auto can continue.
     // CollectBallsAuto repeats SEARCH -> CHASE until this timeout expires.
-    public static final double kBallAutoCollectTimeoutSeconds = 4.0;
+    public static final double kBallAutoCollectTimeoutSeconds = 10.0;
 
     public static final double kBallPathfindMaxVelocityMps = 1.00;
     public static final double kBallPathfindMaxAccelMps2 = 1.50;
@@ -391,14 +391,16 @@ public final class Constants {
       {1.6, 2600.0, 1550.0},
       {2.0, 2600.0, 1550.0},// 2 , 2550, 1500
       {2.5, 2800.0, 1550.0},//2.5, 2900, 1500,
-      {3.0, 2800.0, 1900.0}
+      {3.0, 2800.0, 1900.0},
+      {3.5, 3200.0, 2000.0}
     };
 
     public static final double[][] kShooterDataMapNoIntake = {
       {1.6, 2600.0, 1550.0},
       {2.0, 2600.0, 1550.0},// 2 , 2550, 1500
       {2.5, 2900.0, 1550.0},//2.5, 2900, 1500,
-      {3.0, 2900.0, 1900.0}
+      {3.0, 2900.0, 1900.0},
+      {3.0, 3300.0, 2000.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 300;
