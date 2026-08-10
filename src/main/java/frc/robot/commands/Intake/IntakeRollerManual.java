@@ -1,10 +1,10 @@
 package frc.robot.commands.Intake;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Constants.IntakeConstants.RollerAction;
 import frc.robot.subsystems.IntakeSubsystem;
 
-public class IntakeRollerManual extends Command{
+public class IntakeRollerManual extends InstantCommand{
 
     private IntakeSubsystem intakeSubsystem;
     private RollerAction rollerAction;
@@ -17,19 +17,5 @@ public class IntakeRollerManual extends Command{
   @Override
   public void initialize() {
     intakeSubsystem.setRollerState(rollerAction);
-  }
-
-  @Override
-  public void execute() {
-  }
-  
-  @Override
-  public void end(boolean interrupted) {
-    intakeSubsystem.setRollerState(RollerAction.kStop);
-  }
-
-  @Override
-  public boolean isFinished() {
-    return false;
   }
 }

@@ -42,41 +42,21 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Right get ball 2"
-                }
-              },
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 1.3
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "IntakeGetBall"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
+            "name": "IntakeGetBall"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "right trench shoot"
+            "pathName": "Right get hub"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right trench hub shoot "
           }
         },
         {
@@ -102,6 +82,6 @@
     }
   },
   "resetOdom": false,
-  "folder": null,
+  "folder": "right",
   "choreoAuto": false
 }

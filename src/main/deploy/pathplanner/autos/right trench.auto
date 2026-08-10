@@ -17,13 +17,38 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "right trench shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "AutoShootCommand"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 3.0
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "right trench shoot"
+                  "pathName": "Right get ball 2"
                 }
               },
               {
@@ -33,13 +58,13 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.3
+                        "waitTime": 1.3
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "IntakeStop"
+                        "name": "IntakeGetBall"
                       }
                     }
                   ]
@@ -49,34 +74,9 @@
           }
         },
         {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "AutoShootCommand"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 3.0
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "IntakeGetBall"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "Right get hub 3"
+            "pathName": "right trench shoot"
           }
         },
         {
@@ -93,25 +93,6 @@
                 "type": "wait",
                 "data": {
                   "waitTime": 3.0
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Right 2.5 out"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "IntakeGetBall"
                 }
               }
             ]

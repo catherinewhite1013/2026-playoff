@@ -314,7 +314,7 @@ public final class Constants {
     }
 
     public enum RollerAction{
-      kGetBall(0.6),
+      kGetBall(0.8),
       kStop(0.0),
       kSplitBall(-0.6);
 

@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "IntakeGetBall"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Right get ball"
@@ -13,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right bump shoot"
+            "pathName": "right trench shoot"
           }
         },
         {
@@ -36,15 +42,15 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Right get hub"
+            "name": "IntakeGetBall"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Right bump hub shoot"
+            "pathName": "Right get hub 3+"
           }
         },
         {
@@ -61,6 +67,25 @@
                 "type": "wait",
                 "data": {
                   "waitTime": 3.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Right 2.5 out"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeGetBall"
                 }
               }
             ]
@@ -69,7 +94,7 @@
       ]
     }
   },
-  "resetOdom": true,
-  "folder": null,
+  "resetOdom": false,
+  "folder": "right",
   "choreoAuto": false
 }

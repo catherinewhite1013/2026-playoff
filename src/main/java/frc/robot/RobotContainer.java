@@ -201,6 +201,9 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("IntakeGetBall", 
       new IntakeAuto(intakeSubsystem, ExtendState.kExtend));
+    
+    NamedCommands.registerCommand("IntakeStop", 
+      new IntakeRollerManual(intakeSubsystem, RollerAction.kStop));
 
     
     NamedCommands.registerCommand(
