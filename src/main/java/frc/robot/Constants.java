@@ -254,9 +254,25 @@ public final class Constants {
     // far away, cancel the stale path and return to SEARCH automatically.
     public static final double kBallTargetLostTimeoutSeconds = 0.35;
     public static final double kBallTargetMatchRadiusMeters = 0.90;
+    // Low-pass the field-space target to keep frame-to-frame pose/vision noise from
+    // moving the selected FUEL target abruptly. 0 keeps the old point, 1 uses the
+    // newest observation directly.
+    public static final double kBallTargetPositionFilterAlpha = 0.35;
+    // Do not let a one-frame SEARCH -> CHASE handoff gap immediately cancel the path.
+    public static final double kBallChaseStartupGraceSeconds = 0.30;
     // Once this close to the old target, finish the last short approach even if the
     // camera loses it because the FUEL has entered the intake/camera blind area.
     public static final double kBallFinishApproachDistanceMeters = 0.70;
+    // CHASE completion is based on robot-center distance to the live tracked target,
+    // not on PathPlanner command completion. This must be greater than the planned
+    // 0.35 m stand-off but smaller than the 0.70 m camera-blind-area allowance.
+    public static final double kBallCollectionDistanceMeters = 0.50;
+    // Keep drivetrain ownership briefly after reaching the approach point so the
+    // intake can pull the FUEL in before the next rotating search begins.
+    public static final double kBallCollectSettleSeconds = 0.35;
+    // Rebuild a completed short path against the latest filtered target instead of
+    // treating one PathPlanner completion as proof that a FUEL was collected.
+    public static final double kBallPathReplanDelaySeconds = 0.10;
 
     // PathPlanner autonomous collection must be finite so the rest of the auto can continue.
     // CollectBallsAuto repeats SEARCH -> CHASE until this timeout expires.
