@@ -263,13 +263,15 @@ public final class Constants {
     // Once this close to the old target, finish the last short approach even if the
     // camera loses it because the FUEL has entered the intake/camera blind area.
     public static final double kBallFinishApproachDistanceMeters = 0.70;
-    // CHASE completion is based on robot-center distance to the live tracked target,
-    // not on PathPlanner command completion. This must be greater than the planned
-    // 0.35 m stand-off but smaller than the 0.70 m camera-blind-area allowance.
+    // Reaching this distance starts the current-sensor confirmation timeout. It is
+    // greater than the planned 0.35 m stand-off and below the 0.70 m blind-area limit.
     public static final double kBallCollectionDistanceMeters = 0.50;
     // Keep drivetrain ownership briefly after reaching the approach point so the
     // intake can pull the FUEL in before the next rotating search begins.
     public static final double kBallCollectSettleSeconds = 0.35;
+    // Once the robot reaches the approach distance, leave CHASE if the current
+    // sensor still has not confirmed a FUEL. This avoids waiting forever on a miss.
+    public static final double kBallCollectionSensorTimeoutSeconds = 1.00;
     // Rebuild a completed short path against the latest filtered target instead of
     // treating one PathPlanner completion as proof that a FUEL was collected.
     public static final double kBallPathReplanDelaySeconds = 0.10;
@@ -303,6 +305,12 @@ public final class Constants {
     public static final double kExtendMinOutput = -0.7;
     public static final double kExtendCurrentTripAmps = 60.0;
     public static final double kExtendCurrentTripSeconds = 1.0;
+
+    // Initial roller-current values for FUEL detection. Tune these from logged
+    // free-spin, single-FUEL, and jammed-roller current traces before competition.
+    public static final double kRollerBallDetectCurrentAmps = 35.0;
+    public static final double kRollerBallDetectStartupIgnoreSeconds = 0.30;
+    public static final double kRollerBallDetectDebounceSeconds = 0.12;
 
     public static final double kRollerStartMinPos = 40.0;
 

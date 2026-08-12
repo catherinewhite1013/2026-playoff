@@ -13,8 +13,11 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.util.datalog.BooleanLogEntry;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -41,6 +44,18 @@ public class IntakeSubsystem extends SubsystemBase{
 
     private boolean extendCurrentFault = false;
     private double extendOverCurrentStartSeconds = -1.0;
+    private boolean rollerCollectingCommanded = false;
+    private final IntakeBallCurrentDetector ballCurrentDetector =
+        new IntakeBallCurrentDetector(
+            kRollerBallDetectCurrentAmps,
+            kRollerBallDetectStartupIgnoreSeconds,
+            kRollerBallDetectDebounceSeconds);
+    private final DoubleLogEntry rollerCurrentLog = new DoubleLogEntry(
+        DataLogManager.getLog(), "/FRC8169/Intake/RollerCurrentAmps");
+    private final BooleanLogEntry rollerCollectingCommandedLog = new BooleanLogEntry(
+        DataLogManager.getLog(), "/FRC8169/Intake/RollerCollectingCommanded");
+    private final BooleanLogEntry rollerBallDetectedLog = new BooleanLogEntry(
+        DataLogManager.getLog(), "/FRC8169/Intake/RollerBallCurrentDetected");
 
     public IntakeSubsystem() {
         
@@ -116,7 +131,16 @@ public class IntakeSubsystem extends SubsystemBase{
     }
 
     public void setRollerState(RollerAction action){
+        rollerCollectingCommanded = action == RollerAction.kGetBall;
         rollerMotor.set(action.state);
+    }
+
+    public boolean hasDetectedBallFromRollerCurrent(){
+        return ballCurrentDetector.isDetected();
+    }
+
+    public void clearRollerBallDetection(){
+        ballCurrentDetector.clearDetection();
     }
 
     public void setExtendManual(ExtendManual speed){
@@ -146,6 +170,7 @@ public class IntakeSubsystem extends SubsystemBase{
     }
 
     public void stopRollerMotor(){
+        rollerCollectingCommanded = false;
         rollerMotor.stopMotor();
     }
 
@@ -153,6 +178,11 @@ public class IntakeSubsystem extends SubsystemBase{
     @Override
     public void periodic(){
         double extendCurrentAmps = extendMotor.getOutputCurrent();
+        double rollerCurrentAmps = rollerMotor.getOutputCurrent();
+        ballCurrentDetector.update(
+            Timer.getFPGATimestamp(),
+            rollerCurrentAmps,
+            rollerCollectingCommanded);
 
         if (!extendCurrentFault && extendCurrentAmps >= kExtendCurrentTripAmps) {
             if (extendOverCurrentStartSeconds < 0.0) {
@@ -177,6 +207,19 @@ public class IntakeSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Intake / ExtendRelativePos", getExtendPosition());
         SmartDashboard.putNumber("Intake / ExtendCurrentAmps", extendCurrentAmps);
         SmartDashboard.putBoolean("Intake / ExtendCurrentFault", extendCurrentFault);
+        SmartDashboard.putNumber("Intake / RollerCurrentAmps", rollerCurrentAmps);
+        SmartDashboard.putNumber(
+            "Intake / RollerBallCurrentThresholdAmps",
+            kRollerBallDetectCurrentAmps);
+        SmartDashboard.putBoolean(
+            "Intake / RollerBallCurrentDetected",
+            ballCurrentDetector.isDetected());
+        SmartDashboard.putBoolean(
+            "Intake / RollerBallCurrentDebouncing",
+            ballCurrentDetector.isAboveThresholdDebouncing());
+        rollerCurrentLog.append(rollerCurrentAmps);
+        rollerCollectingCommandedLog.update(rollerCollectingCommanded);
+        rollerBallDetectedLog.update(ballCurrentDetector.isDetected());
         SmartDashboard.putNumber("BallVision/IntakeExtensionFraction", getExtendFraction());
         SmartDashboard.putNumber("BallVision/CameraRobotX", getBallCameraRobotOffset().getX());
         SmartDashboard.putNumber("BallVision/CameraRobotY", getBallCameraRobotOffset().getY());

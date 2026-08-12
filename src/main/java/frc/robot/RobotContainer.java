@@ -283,7 +283,10 @@ private Command buildContinuousBallCollectionCommand() {
     BallVisionTracker tracker = new BallVisionTracker(swerveSubsytem, intakeSubsystem);
 
     Command continuousSearchAndChase = Commands.repeatingSequence(
-        new InstantCommand(() -> lastScannedCluster.set(null)),
+        new InstantCommand(() -> {
+            lastScannedCluster.set(null);
+            intakeSubsystem.clearRollerBallDetection();
+        }),
 
         // SEARCH: rotate until a valid cluster is found, then compare briefly.
         new ballFinding(
@@ -318,6 +321,8 @@ private Command buildTrackedBallChase(
     }
 
     AtomicBoolean lostTarget = new AtomicBoolean(false);
+    AtomicBoolean collectedByCurrent = new AtomicBoolean(false);
+    AtomicBoolean collectionTimedOut = new AtomicBoolean(false);
     double[] chaseStartTimestamp = new double[] {-1.0};
 
     Command pathCommand = PathfindToBallCluster.buildContinuous(
@@ -326,6 +331,8 @@ private Command buildTrackedBallChase(
         swerveSubsytem
     ).beforeStarting(() -> {
         lostTarget.set(false);
+        collectedByCurrent.set(false);
+        collectionTimedOut.set(false);
         chaseStartTimestamp[0] = Timer.getFPGATimestamp();
         tracker.beginTrackingTarget(selectedTarget);
         SmartDashboard.putString("BallVision/SearchState", "CHASE");
@@ -360,11 +367,33 @@ private Command buildTrackedBallChase(
         Translation2d trackedTarget = tracker.getTrackedTargetOr(selectedTarget);
         double distance = swerveSubsytem.getPose().getTranslation().getDistance(trackedTarget);
         SmartDashboard.putNumber("BallVision/TrackedTargetDistanceMeters", distance);
-        return distance <= kBallCollectionDistanceMeters;
+        boolean collected = distance <= kBallFinishApproachDistanceMeters
+            && intakeSubsystem.hasDetectedBallFromRollerCurrent();
+        if (collected) {
+            collectedByCurrent.set(true);
+        }
+        return collected;
     }).andThen(Commands.waitSeconds(kBallCollectSettleSeconds));
 
-    return pathCommand.raceWith(lostTargetCommand, collectedCommand).finallyDo(interrupted -> {
-            if (lostTarget.get()) {
+    Command collectionTimeoutCommand = new WaitUntilCommand(() -> {
+        Translation2d trackedTarget = tracker.getTrackedTargetOr(selectedTarget);
+        double distance = swerveSubsytem.getPose().getTranslation().getDistance(trackedTarget);
+        return distance <= kBallCollectionDistanceMeters;
+    }).andThen(
+        Commands.waitSeconds(kBallCollectionSensorTimeoutSeconds),
+        new InstantCommand(() -> collectionTimedOut.set(true))
+    );
+
+    return pathCommand
+        .raceWith(lostTargetCommand, collectedCommand, collectionTimeoutCommand)
+        .finallyDo(interrupted -> {
+            if (interrupted) {
+                SmartDashboard.putString("BallVision/SearchState", "CANCELLED");
+            } else if (collectedByCurrent.get()) {
+                SmartDashboard.putString("BallVision/SearchState", "COLLECTED_NEXT_SEARCH");
+            } else if (collectionTimedOut.get()) {
+                SmartDashboard.putString("BallVision/SearchState", "COLLECTION_TIMEOUT_REACQUIRE");
+            } else if (lostTarget.get()) {
                 SmartDashboard.putString("BallVision/SearchState", "LOST_REACQUIRE");
             } else {
                 SmartDashboard.putString("BallVision/SearchState", "NEXT_SEARCH");
