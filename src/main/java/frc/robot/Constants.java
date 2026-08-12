@@ -269,7 +269,7 @@ public final class Constants {
 
     // Legacy/general pathfinding limits retained for any other code that still uses them.
     public static final double kPathfindMaxVelocityMps = 3.5;
-    public static final double kPathfindMaxAccelMps2 = 3.0;
+    public static final double kPathfindMaxAccelMps2 = 4.0;
     public static final double kPathfindMaxAngularVelDeg = 360;
     public static final double kPathfindMaxAngularAccelDeg = 540;
   }
@@ -360,7 +360,7 @@ public final class Constants {
     public static final int kReverseChargeLedCount = 4;
     public static final int kAimLedCount =
         kMainChargeLedCount + kForwardChargeLedCount + kReverseChargeLedCount;
-    public static final int kChargeLedCount = 41;
+    public static final int kChargeLedCount = 40;
     public static final int kTotalLedCount = kAimLedCount + kChargeLedCount;
 
     public static final int kRainbowStep = 3;
