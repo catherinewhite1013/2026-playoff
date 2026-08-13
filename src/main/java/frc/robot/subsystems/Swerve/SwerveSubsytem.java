@@ -113,7 +113,7 @@ public class SwerveSubsytem extends SubsystemBase {
   private Pose2d encoderPose2d = new Pose2d();
   private Pose2d latestVisionPose = new Pose2d();
   private Pose2d latestRawVisionPose = new Pose2d();
-  private boolean hasSeededPoseWithVision = false;
+  private boolean hasSeededPoseWithVision = true;
   private double lastVisionTimestamp = -1.0;
   private double lastVisionTagCount = 0.0;
   private double lastRawVisionTimestamp = -1.0;
@@ -643,13 +643,13 @@ public class SwerveSubsytem extends SubsystemBase {
     lastVisionTimestamp = estimate.timestampSeconds;
     lastVisionTagCount = estimate.tagCount;
 
-    if (!hasSeededPoseWithVision) {
-      gyroFieldOffsetDegrees =
-          latestVisionPose.getRotation().getDegrees() - getRawRobotAngle(); 
-      poseEstimator.resetPosition(getRobotRotation(), getModulePositions(), latestVisionPose);
-      hasSeededPoseWithVision = true;
-      return;
-    }
+    // if (!hasSeededPoseWithVision) {
+    //   gyroFieldOffsetDegrees =
+    //       latestVisionPose.getRotation().getDegrees() - getRawRobotAngle(); 
+    //   poseEstimator.resetPosition(getRobotRotation(), getModulePositions(), latestVisionPose);
+    //   hasSeededPoseWithVision = true;
+    //   return;
+    //}
 
     poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));  //TODO:
     poseEstimator.addVisionMeasurement(latestVisionPose, estimate.timestampSeconds);
