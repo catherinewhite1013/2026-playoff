@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.DriveConstants;
@@ -57,6 +58,8 @@ public class SwerveAiming extends Command {
 
     private double filteredFieldVx = 0.0;
     private double filteredFieldVy = 0.0;
+
+    public Field2d field = new Field2d();
 
     private static final PIDController pidController = new PIDController(
         DriveConstants.kPLockHeading,
@@ -150,6 +153,7 @@ public class SwerveAiming extends Command {
 
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
                 swerveSubsytem.setAimingRotationOverride(-rotationSpeed);
+                // field.getObject("hub").setPose(currentTarget.get);
                 break;
 
             case 1: // Pass: preserve existing behavior, no Hub lead compensation

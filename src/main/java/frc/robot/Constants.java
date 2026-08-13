@@ -292,7 +292,7 @@ public final class Constants {
 
   public static final class IntakeConstants {
 
-    public static final double kExtendFowardPosLimit = 48.0;
+    public static final double kExtendFowardPosLimit = 48.5;
     public static final double kExtendReversePosLimit = 0.0;
 
     public static final double kP = 0.05;
@@ -404,20 +404,20 @@ public final class Constants {
 
     //TODO:
     public static final double[][] kShooterDataMap = {
-      {1.6, 2600.0, 1550.0},
-      {2.0, 2600.0, 1550.0},// 2 , 2550, 1500
-      {2.5, 2800.0, 1550.0},//2.5, 2900, 1500,
-      {3.0, 2800.0, 1900.0},
-      {3.5, 3200.0, 2000.0},
-      {4.0, 3400.0, 2500.0}
+      {1.6, 2700.0, 1550.0},
+      {2.0, 2700.0, 1550.0},// 2 , 2550, 1500
+      {2.5, 3000.0, 1550.0},//2.5, 2900, 1500,
+      {3.0, 3000.0, 1900.0},
+      {3.5, 3400.0, 2000.0},
+      {4.0, 3600.0, 2500.0}
     };
 
     public static final double[][] kShooterDataMapNoIntake = {
-      {1.6, 2600.0, 1550.0},
-      {2.0, 2600.0, 1550.0},// 2 , 2550, 1500
-      {2.5, 2900.0, 1550.0},//2.5, 2900, 1500,
-      {3.0, 2900.0, 1900.0},
-      {3.0, 3300.0, 2000.0}
+      {1.6, 2700.0, 1550.0},
+      {2.0, 2700.0, 1550.0},// 2 , 2550, 1500
+      {2.5, 3000.0, 1550.0},//2.5, 2900, 1500,
+      {3.0, 3000.0, 1900.0},
+      {3.0, 3400.0, 2000.0}
     };
 
     public static final double kMainFlywheelErrTolerence = 300;
