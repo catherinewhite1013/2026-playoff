@@ -27,7 +27,7 @@ public class IntakeRetract extends Command{
     @Override
     public void execute() {
         storageSubsystem.setStorageAction(StorageAction.kIn, ShooterFeedAction.kIn);
-        if (intakeSubsystem.getExtendPosition() > IntakeConstants.kExtendReversePosLimit + 23) {
+        if (intakeSubsystem.getExtendPosition() > IntakeConstants.kExtendReversePosLimit + 20) {
             intakeSubsystem.setExtendManual(ExtendManual.kIn);
             intakeSubsystem.setRollerState(RollerAction.kGetBall);
         } else{

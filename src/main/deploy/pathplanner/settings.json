@@ -4,11 +4,13 @@
   "holonomicMode": true,
   "pathFolders": [
     "FUN",
+    "New Folder",
     "left",
     "right"
   ],
   "autoFolders": [
     "FUN",
+    "Middle",
     "left",
     "right"
   ],
