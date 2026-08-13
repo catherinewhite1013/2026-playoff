@@ -173,7 +173,7 @@ public class RobotContainer {
 
     m_operatorController.pov(0).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kOut));  //intake
     m_operatorController.pov(180).whileTrue(new IntakeExtendManual(intakeSubsystem, ExtendManual.kIn));
-    m_operatorController.a().whileTrue(new InstantCommand(()-> intakeSubsystem.stopextendMotor()));
+    m_operatorController.b().whileTrue(new InstantCommand(()-> intakeSubsystem.stopextendMotor()));
     
     m_operatorController.x().whileTrue(new FlywheelTuning(shooterSubsystem));
     m_operatorController.y().whileTrue(new InstantCommand(()-> shooterSubsystem.calcShooterToHub(swerveSubsytem.getPose())));
