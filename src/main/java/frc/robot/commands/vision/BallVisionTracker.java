@@ -32,6 +32,8 @@ public class BallVisionTracker extends Command {
     private Translation2d latestClusterCenter = null;
     private int latestClusterCount = 0;
     private double latestValidFrameTimestamp = -1.0;
+    private Translation2d selectedTarget = null;
+    private double selectedTargetLastSeenTimestamp = -1.0;
 
     public BallVisionTracker(
             SwerveSubsytem swerveSubsytem,
@@ -47,6 +49,8 @@ public class BallVisionTracker extends Command {
         latestClusterCenter = null;
         latestClusterCount = 0;
         latestValidFrameTimestamp = -1.0;
+        selectedTarget = null;
+        selectedTargetLastSeenTimestamp = -1.0;
         LimelightHelpers.setPipelineIndex(kBallLimelightName, kBallDetectorPipelineIndex);
         SmartDashboard.putBoolean("BallVision/TrackerActive", true);
     }
@@ -77,6 +81,12 @@ public class BallVisionTracker extends Command {
             latestClusterCenter = cluster.center;
             latestClusterCount = cluster.count;
             latestValidFrameTimestamp = Timer.getFPGATimestamp();
+
+            Translation2d matchedTarget = findMatchingTarget(selectedTarget);
+            if (matchedTarget != null) {
+                selectedTarget = lowPassTarget(selectedTarget, matchedTarget);
+                selectedTargetLastSeenTimestamp = latestValidFrameTimestamp;
+            }
         } else {
             latestClusterCenter = null;
             latestClusterCount = 0;
@@ -89,6 +99,30 @@ public class BallVisionTracker extends Command {
             "BallVision/TrackerHasRecentTarget",
             hasRecentAnyTarget(kBallTargetLostTimeoutSeconds)
         );
+        SmartDashboard.putBoolean(
+            "BallVision/SelectedTargetRecent",
+            isSelectedTargetStillVisible(selectedTarget)
+        );
+        SmartDashboard.putNumber(
+            "BallVision/SelectedTargetAgeSeconds",
+            selectedTargetLastSeenTimestamp < 0.0
+                ? -1.0
+                : Timer.getFPGATimestamp() - selectedTargetLastSeenTimestamp
+        );
+    }
+
+    /**
+     * Begin a new chase using a target that ballFinding just validated.
+     *
+     * Seeding the timestamp here closes the one-scheduler-cycle gap between the
+     * SEARCH command and this independent observer. A single empty Limelight frame
+     * at the transition must not cancel the new PathPlanner command.
+     */
+    public void beginTrackingTarget(Translation2d target) {
+        selectedTarget = target;
+        selectedTargetLastSeenTimestamp = target == null
+            ? -1.0
+            : Timer.getFPGATimestamp();
     }
 
     /** True if any valid FUEL frame has been seen recently. */
@@ -102,19 +136,57 @@ public class BallVisionTracker extends Command {
      * This prevents another unrelated ball elsewhere in the image from keeping an old path alive.
      */
     public boolean isSelectedTargetStillVisible(Translation2d selectedTarget) {
-        if (selectedTarget == null || !hasRecentAnyTarget(kBallTargetLostTimeoutSeconds)) {
+        if (selectedTarget == null || this.selectedTarget == null || selectedTargetLastSeenTimestamp < 0.0) {
             return false;
         }
 
+        return Timer.getFPGATimestamp() - selectedTargetLastSeenTimestamp <= kBallTargetLostTimeoutSeconds;
+    }
+
+    /** Latest filtered field-space point for the selected FUEL. */
+    public Translation2d getTrackedTargetOr(Translation2d fallback) {
+        return selectedTarget != null ? selectedTarget : fallback;
+    }
+
+    private Translation2d findMatchingTarget(Translation2d target) {
+        if (target == null) {
+            return null;
+        }
+
+        Translation2d closest = null;
+        double closestDistance = Double.POSITIVE_INFINITY;
         for (Translation2d ball : latestBallPositions) {
-            if (ball.getDistance(selectedTarget) <= kBallTargetMatchRadiusMeters) {
-                return true;
+            double distance = ball.getDistance(target);
+            if (distance <= kBallTargetMatchRadiusMeters && distance < closestDistance) {
+                closest = ball;
+                closestDistance = distance;
             }
         }
 
         // A dense cluster center may sit between several individual FUEL positions.
-        return latestClusterCenter != null
-            && latestClusterCenter.getDistance(selectedTarget) <= kBallTargetMatchRadiusMeters;
+        if (latestClusterCenter != null) {
+            double centerDistance = latestClusterCenter.getDistance(target);
+            if (centerDistance <= kBallTargetMatchRadiusMeters
+                    && centerDistance < closestDistance) {
+                closest = latestClusterCenter;
+            }
+        }
+
+        return closest;
+    }
+
+    private static Translation2d lowPassTarget(
+            Translation2d previous,
+            Translation2d observation) {
+        if (previous == null) {
+            return observation;
+        }
+
+        double alpha = Math.max(0.0, Math.min(1.0, kBallTargetPositionFilterAlpha));
+        return new Translation2d(
+            previous.getX() + alpha * (observation.getX() - previous.getX()),
+            previous.getY() + alpha * (observation.getY() - previous.getY())
+        );
     }
 
     @Override

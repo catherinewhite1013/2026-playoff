@@ -7,6 +7,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
+import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import java.util.Set;
+import java.util.function.Supplier;
 
 import static frc.robot.Constants.BallVisionConstants.*;
 
@@ -41,6 +47,13 @@ public final class PathfindToBallCluster {
             Translation2d approachPoint = target.minus(approachOffset);
 
             targetPose = new Pose2d(approachPoint, approachHeading);
+            SmartDashboard.putNumber(
+                "BallVision/PathRobotToBallDistanceMeters", targetDistance);
+            SmartDashboard.putNumber(
+                "BallVision/PathPlannedTravelMeters",
+                approachPoint.getDistance(currentRobotPose.getTranslation()));
+            SmartDashboard.putNumber("BallVision/PathGoalX", approachPoint.getX());
+            SmartDashboard.putNumber("BallVision/PathGoalY", approachPoint.getY());
         } else if (fallbackPose != null) {
             targetPose = fallbackPose;
         } else {
@@ -57,6 +70,24 @@ public final class PathfindToBallCluster {
         );
 
         return AutoBuilder.pathfindToPose(targetPose, constraints, 0.0);
+    }
+
+    /**
+     * Keep CHASE alive independently of one PathPlanner command's finish result.
+     * A completed short path is rebuilt from the current robot pose to the latest
+     * filtered target. The caller owns the real collection/lost-target finish gates.
+     */
+    public static Command buildContinuous(
+            Supplier<Translation2d> targetSupplier,
+            Supplier<Pose2d> robotPoseSupplier,
+            Subsystem drivetrainRequirement) {
+        return Commands.repeatingSequence(
+            new DeferredCommand(
+                () -> build(targetSupplier.get(), null, robotPoseSupplier.get()),
+                Set.of(drivetrainRequirement)
+            ),
+            Commands.waitSeconds(kBallPathReplanDelaySeconds)
+        );
     }
 
     /** Backward-compatible overload for older call sites. */

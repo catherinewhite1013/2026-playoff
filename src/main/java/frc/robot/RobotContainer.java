@@ -49,6 +49,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -317,26 +318,34 @@ private Command buildTrackedBallChase(
     }
 
     AtomicBoolean lostTarget = new AtomicBoolean(false);
+    double[] chaseStartTimestamp = new double[] {-1.0};
 
-    Command pathCommand = PathfindToBallCluster.build(
-        selectedTarget,
-        null,
-        swerveSubsytem.getPose()
+    Command pathCommand = PathfindToBallCluster.buildContinuous(
+        () -> tracker.getTrackedTargetOr(selectedTarget),
+        swerveSubsytem::getPose,
+        swerveSubsytem
     ).beforeStarting(() -> {
         lostTarget.set(false);
+        chaseStartTimestamp[0] = Timer.getFPGATimestamp();
+        tracker.beginTrackingTarget(selectedTarget);
         SmartDashboard.putString("BallVision/SearchState", "CHASE");
         SmartDashboard.putNumber("BallVision/ChaseTargetX", selectedTarget.getX());
         SmartDashboard.putNumber("BallVision/ChaseTargetY", selectedTarget.getY());
     });
 
     Command lostTargetCommand = new WaitUntilCommand(() -> {
-        double robotDistanceToOldTarget = swerveSubsytem.getPose()
-            .getTranslation()
-            .getDistance(selectedTarget);
+        // Give PathPlanner and the observer time to take ownership after SEARCH.
+        // The target was positively validated by ballFinding immediately before this.
+        if (chaseStartTimestamp[0] < 0.0 || Timer.getFPGATimestamp() - chaseStartTimestamp[0] < kBallChaseStartupGraceSeconds) {
+            return false;
+        }
+
+        Translation2d trackedTarget = tracker.getTrackedTargetOr(selectedTarget);
+        double robotDistanceToTrackedTarget = swerveSubsytem.getPose().getTranslation().getDistance(trackedTarget);
 
         // Near the intake, losing the target is expected because the ball moves under
         // the camera. Finish the last short approach instead of spinning away.
-        if (robotDistanceToOldTarget <= kBallFinishApproachDistanceMeters) {
+        if (robotDistanceToTrackedTarget <= kBallFinishApproachDistanceMeters) {
             return false;
         }
 
@@ -347,9 +356,14 @@ private Command buildTrackedBallChase(
         return lost;
     });
 
-    return pathCommand
-        .raceWith(lostTargetCommand)
-        .finallyDo(interrupted -> {
+    Command collectedCommand = new WaitUntilCommand(() -> {
+        Translation2d trackedTarget = tracker.getTrackedTargetOr(selectedTarget);
+        double distance = swerveSubsytem.getPose().getTranslation().getDistance(trackedTarget);
+        SmartDashboard.putNumber("BallVision/TrackedTargetDistanceMeters", distance);
+        return distance <= kBallCollectionDistanceMeters;
+    }).andThen(Commands.waitSeconds(kBallCollectSettleSeconds));
+
+    return pathCommand.raceWith(lostTargetCommand, collectedCommand).finallyDo(interrupted -> {
             if (lostTarget.get()) {
                 SmartDashboard.putString("BallVision/SearchState", "LOST_REACQUIRE");
             } else {
@@ -359,7 +373,6 @@ private Command buildTrackedBallChase(
 }
 
 private Pose2d getFallbackScanPose() {
-    // 沒偵測到球時的保底位置，例如場地上固定的收球區中心
     return new Pose2d(6.0, 3.7, Rotation2d.fromDegrees(90));
 }
     
