@@ -153,7 +153,7 @@ public class SwerveAiming extends Command {
 
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
                 swerveSubsytem.setAimingRotationOverride(-rotationSpeed);
-                // field.getObject("hub").setPose(currentTarget.get);
+                field.getObject("hub").setPose(new Pose2d(compensatedTarget, targetFieldAngle));
                 break;
 
             case 1: // Pass: preserve existing behavior, no Hub lead compensation
