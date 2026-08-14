@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,6 +23,7 @@ public class SwerveAiming extends Command {
 
     private double currentRobotAngle = 0;
     private double targetAngle = 0;
+    private boolean isRed = false;
 
     /*
      * Moving-shot ballistic lead
@@ -157,10 +159,19 @@ public class SwerveAiming extends Command {
                 break;
 
             case 1: // Pass: preserve existing behavior, no Hub lead compensation
-                targetAngle = 180.0;
+          var allience = DriverStation.getAlliance();
+        
+        if (allience.isPresent() && allience.get() == DriverStation.Alliance.Red) {
+            targetAngle = 0.0;
                 rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
                 swerveSubsytem.setAimingRotationOverride(-rotationSpeed);
                 break;
+        } else {
+            targetAngle = 180.0;
+                rotationSpeed = pidController.calculate(currentRobotAngle, targetAngle);
+                swerveSubsytem.setAimingRotationOverride(-rotationSpeed);
+                break;
+        }
 
             default:
                 swerveSubsytem.clearAimingRotationOverride();
